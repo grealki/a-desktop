@@ -4821,9 +4821,9 @@ namespace CapriDesktop
             string streamStep = Chores.Say("  Hi Milo!  ");
             Chores.Says = null;
             fail("her stream says lines out loud", streamLines.Count == 1 && streamLines[0] == "Hi Milo!" && streamStep.IndexOf("Hi Milo!", StringComparison.Ordinal) > 0 && Chores.StreamRules.IndexOf("\"do\":\"say\"", StringComparison.Ordinal) > 0);
-            string blackwall = Chores.Allowed;
+            string safeRules = Chores.Allowed;
             Security.Pick(Security.Trusted);
-            fail("rules follow SECURITY", Chores.Allowed == Chores.Rules && blackwall.IndexOf("Type passwords", StringComparison.Ordinal) > 0 && blackwall.IndexOf("Never", StringComparison.Ordinal) < 0);
+            fail("rules retain sensitive-action safeguards", Chores.Allowed == Chores.Rules && safeRules.IndexOf("Never type passwords", StringComparison.Ordinal) > 0 && safeRules.IndexOf("Never pay", StringComparison.Ordinal) > 0);
             if (wrong.Count > 0) throw new Exception("Her mouse and keyboard jobs went wrong: " + string.Join(", ", wrong) + " / " + result + " / " + ran + " / " + endless + " / " + done.Count + " / " + replied);
             checks.Add("PASS mouse and keyboard jobs: on Linux use_computer sends her brain the screenshot and the steps so far, takes one JSON step back even wrapped in words, clicks, types and presses keys through her own uinput mouse and keyboard until the brain says done or 25 steps go by, is told the red-haired girl with the speech bubble is her so she never clicks herself, and never types a card number");
         }
