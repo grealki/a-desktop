@@ -6489,6 +6489,7 @@ namespace CapriDesktop
                     int toggle = i;
                     Toggle box = new Toggle();
                     box.Text = Security.Names[i];
+                    box.Enabled = !Security.Locked(i);
                     box.Font = Font;
                     box.Switch = 96;
                     box.Bounds = Box(x, y, Column, 22);
