@@ -931,8 +931,8 @@ namespace CapriDesktop
             cursor = Switch("Use her cursor", c, 736, delegate { if (!syncing) capri.ToggleCursor(); });
             remembering = Switch("Remember our chats", c, 764, delegate { if (!syncing) capri.ToggleRemembering(); });
             remembering.AccessibleName = "Remember our chats. She keeps daily transcripts and memories.md on this PC, never uploaded";
-            // SECURITY took Blackwall mode's place (Lachy, 29 Oct): its button opens her SECURITY window, and the line under it
-            // says what the preset does. Blackwall mode is its Blackwall preset now.
+            // SECURITY took Azure mode's place (Lachy, 29 Oct): its button opens her SECURITY window, and the line under it
+            // says what the preset does. Azure mode is its Azure preset now.
             security = Make("Security: " + Security.PresetName, 28 + c, 795, 328, 22, delegate { OpenSecurity(); });
             security.AccessibleName = "Security: what she does on your PC without asking first";
             blackwallNote = Caption(Security.Short, 28 + c, 819, small, Faint);
@@ -1772,7 +1772,7 @@ namespace CapriDesktop
 
         internal string JobsStatus { get { return (cursor.Checked ? "cursor" : "-") + " | " + security.Text; } }
 
-        internal string BlackwallStatus { get { return security.Text + " | " + blackwallNote.Text; } }
+        internal string AzureStatus { get { return security.Text + " | " + blackwallNote.Text; } }
 
         internal string SettingsStatus { get { return languages.Text + " | " + volumeName.Text + " | " + soundsName.Text + " | " + wanderName.Text + " | " + sleepName.Text + " | " + (dance.Checked ? "dance" : "-") + " | " + (intro.Checked ? "intro" : "-") + " | " + repliesName.Text + " | " + recallName.Text + " | " + bubbleName.Text; } }
 
@@ -4810,8 +4810,8 @@ namespace CapriDesktop
             }
         }
 
-        // Blackwall's red. Black, White and Grey turn it into a grey too dim to read on its box, so they use their Hot.
-        internal static Color BlackwallInk { get { return Neon.Mono ? Neon.Hot : Neon.Tone(255, 0, 70); } }
+        // Azure's red. Black, White and Grey turn it into a grey too dim to read on its box, so they use their Hot.
+        internal static Color AzureInk { get { return Neon.Mono ? Neon.Hot : Neon.Tone(255, 0, 70); } }
 
         private ContextMenuStrip Dropdown()
         {
@@ -6431,17 +6431,17 @@ namespace CapriDesktop
         }
 
         // Her SECURITY window, in Settings' look (Lachy, 29 Oct): a slider of four presets, Lockdown, Guarded, Trusted and
-        // Blackwall, that sets the toggles under it, and a toggle with a plain line for each kind of thing she does on their PC.
+        // Azure, that sets the toggles under it, and a toggle with a plain line for each kind of thing she does on their PC.
         // Flipping one makes it Custom, and a click on the slider puts the preset under its knob back. Her hands' toggles are on
         // the left with HER MEMORY's under them, and her jobs' and listening's on the right. It opens from Settings > HABITS,
-        // where Blackwall mode was. Zoom is 1 except in the smoke test, which draws it at 150% and 200% too.
+        // where Azure mode was. Zoom is 1 except in the smoke test, which draws it at 150% and 200% too.
         private sealed class SecuritySheet : Form, LookWindow, Tinted
         {
             internal const int Wide = 900, Tall = 562, Column = 410;
             internal readonly float Zoom;
             private readonly Mainframe owner;
             private readonly Slider presets;
-            public void Recolour(Func<Color, Color> swap) { if (Security.Preset == Security.Blackwall) presets.Ink = BlackwallInk; }
+            public void Recolour(Func<Color, Color> swap) { if (Security.Preset == Security.Azure) presets.Ink = AzureInk; }
             private readonly Readout presetName;
             private readonly Label presetLine;
             private readonly Toggle[] toggles = new Toggle[Security.Count];
@@ -6477,7 +6477,7 @@ namespace CapriDesktop
                 presets = new Slider(new[] { Security.Presets[0], Security.Presets[1], Security.Presets[2], Security.Presets[3] });
                 presets.Font = Type(12f * zoom, true);
                 presets.Bounds = Box(120, 70, 340, 36);
-                presets.AccessibleName = "Security preset: Lockdown, Guarded, Trusted or Blackwall";
+                presets.AccessibleName = "Security preset: Lockdown, Guarded, Trusted or Azure";
                 presets.Changed += delegate { if (!syncing) Security.Pick(presets.Value); };
                 presets.MouseUp += delegate { if (!syncing && Security.Preset == Security.Custom) Security.Pick(presets.Value); };
                 Controls.Add(presets);
@@ -6534,9 +6534,9 @@ namespace CapriDesktop
                 presetName.Text = Security.Presets[preset];
                 presetName.ForeColor = preset == Security.Custom ? Neon.Amber : Cyan;
                 presetLine.Text = Security.PresetLine(preset);
-                presets.Torn = preset == Security.Blackwall;
-                presets.Storm = preset == Security.Blackwall && owner.capri.Moves;
-                presets.Ink = preset == Security.Blackwall ? BlackwallInk : Color.Empty;
+                presets.Torn = preset == Security.Azure;
+                presets.Storm = preset == Security.Azure && owner.capri.Moves;
+                presets.Ink = preset == Security.Azure ? AzureInk : Color.Empty;
                 for (int i = 0; i < Security.Count; i++) toggles[i].Checked = Security.On(i);
                 syncing = false;
             }
@@ -7411,7 +7411,7 @@ namespace CapriDesktop
             private Color ink = Color.Empty;
             // A tick under every step, or every few on a slider with many, like her voice layers' pitch and delay.
             internal int TickEvery = 1;
-            // Blackwall's preset: red, torn and never quite still while it's picked (Lachy, 1 Nov).
+            // Azure's preset: red, torn and never quite still while it's picked (Lachy, 1 Nov).
             internal bool Torn;
             private System.Windows.Forms.Timer storm;
             private readonly Random tears = new Random();
