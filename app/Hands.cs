@@ -105,18 +105,15 @@ namespace CapriDesktop
         internal InstalledApp(string name, string id) { Name = name; Id = id; }
     }
 
-    // Her SECURITY window (Lachy, 29 Oct): a toggle for each kind of thing she does on their PC, set by a slider of four presets.
-    // A toggle that's off means she asks first in chat ("Open Spotify? Say yes and I will.") and does it on their yes, never a
-    // silent no. Typing passwords and card numbers is the one exception: with it off they type those themselves. Trusted, the
-    // default, is how she worked before the window, and Blackwall is Blackwall mode (Bypass all permissions before 0.7.4) plus
-    // listening for "Hey Capri". The gate is in code: her tools stop here, and her jobs' steps stop in Computer's checks.
-    // Toggle 13, Keep personal details out of her memories (#88, Lachy, 5 Nov), is on in every preset but Blackwall: on, her
-    // notes, Get to know me and what she sees leave addresses, numbers and emails out (Brain.Discreet). Off is how she was before.
+    // Her SECURITY window: presets control ordinary desktop actions. Payment confirmation, approval for unrequested
+    // actions, and manual credential entry are fixed safeguards that cannot be disabled by a preset or saved preference.
+    // The gate is enforced here and in Computer's job checks. Personal details stay out of memories in every preset.
     internal static class Security
     {
         internal const int Open = 0, Media = 1, Shortcuts = 2, Windows = 3, Power = 4, Mouse = 5, Sends = 6, Pays = 7, Unasked = 8, Secrets = 9, Wake = 10, Friends = 11, Personal = 12, Count = 13;
-        internal const int Lockdown = 0, Guarded = 1, Trusted = 2, Blackwall = 3, Custom = 4;
-        internal static readonly string[] Names = { "Open apps, games and sites", "Music, media and volume", "Shortcuts (screenshots, Game Bar, captions, Discord mute)", "Close and switch apps and tabs", "Shut down, restart, sleep, lock and sign out", "Use your mouse and keyboard for jobs", "Send, post and delete what you asked for", "Pay, buy and book", "Things your request didn't mention", "Type passwords and card numbers", "Listen for \"Hey Capri\"", "Friends on a call can ask, you confirm", "Keep personal details out of her memories" };
+        internal const int Lockdown = 0, Guarded = 1, Trusted = 2, Azure = 3, Custom = 4;
+        private const int RestrictedMask = (1 << Pays) | (1 << Unasked) | (1 << Secrets);
+        internal static readonly string[] Names = { "Open apps, games and sites", "Music, media and volume", "Shortcuts (screenshots, Game Bar, captions, Discord mute)", "Close and switch apps and tabs", "Shut down, restart, sleep, lock and sign out", "Use your mouse and keyboard for jobs", "Send, post and delete what you asked for", "Payments and purchases (always confirm)", "Extra actions (always confirm)", "Passwords and card details (you enter these)", "Listen for \"Hey Capri\"", "Friends on a call can ask, you confirm", "Keep personal details out of her memories" };
         internal static readonly string[] Lines =
         {
             "On: she opens them when you ask. Off: she asks first.",
@@ -130,27 +127,26 @@ namespace CapriDesktop
             "On: she does it as soon as you ask. Off: she asks first.",
             "On: she clicks and types in your apps. Off: she asks first.",
             "On: she sends it without checking again. Off: she asks first.",
-            "On: she pays and books without checking. Off: she asks first.",
-            "On: she does the extra steps a job needs. Off: she asks first.",
-            "On: she types the ones your job gives her. Off: you type them.",
+            "Always: she asks you to confirm before any payment, purchase or booking.",
+            "Always: she asks before actions that weren't included in your request.",
+            "Always: you enter passwords and card details yourself.",
             "On: she listens on this PC for her name. Off: she doesn't.",
             "Call mode only. Your mic or typing must confirm each ask.",
             "On: addresses, emails and numbers stay out. Off: they don't."
         };
-        internal static readonly string[] Presets = { "Lockdown", "Guarded", "Trusted", "Blackwall", "Custom" };
+        internal static readonly string[] Presets = { "Lockdown", "Guarded", "Trusted", "Azure", "Custom" };
         private static readonly string[] Told =
         {
             "She asks first before she does anything on your PC.",
             "She opens apps and sites, plays music and presses shortcuts, and asks first for the rest.",
             "She does what you ask, and asks first before paying or anything you didn't mention.",
-            "She never asks, types passwords and card numbers, and listens for \"Hey Capri\".",
+            "Normal desktop actions are enabled; sensitive actions still need your confirmation.",
             "Your own mix. Pick a preset to start again from it."
         };
         // The Settings line under her SECURITY button, short enough for its row.
-        private static readonly string[] Shorts = { "She asks first before everything.", "Apps, music, shortcuts. Asks for the rest.", "Asks before paying or what you didn't say.", "She never asks, and listens for Hey Capri.", "Your own mix of toggles." };
-        // Lockdown has the first twelve off, Guarded the first three on, Trusted the first seven and Blackwall the first eleven.
-        // Keeping personal details out of her memories is on in all of them but Blackwall.
-        private static readonly int[] Masks = { 1 << Personal, 0x7 | (1 << Personal), 0x7F | (1 << Personal), 0x7FF };
+        private static readonly string[] Shorts = { "She asks first before everything.", "Apps, music, shortcuts. Asks for the rest.", "Asks before paying or what you didn't say.", "Normal actions on; sensitive actions stay protected.", "Your own mix of toggles." };
+        // Azure is Trusted plus the optional wake-word toggle. Restricted permission bits are never set in a preset.
+        private static readonly int[] Masks = { 1 << Personal, 0x7 | (1 << Personal), 0x7F | (1 << Personal), 0x47F | (1 << Personal) };
         private static int mask = 0x7F | (1 << Personal);
         private static readonly object gate = new object();
         // Toggle 11 is her wake word's own setting on Windows, read and set through these. Elsewhere it's kept here with the rest.
@@ -165,15 +161,18 @@ namespace CapriDesktop
         // A tool result that held the call to ask first. Voice chat reads it as it is; text chat says only the question.
         internal const string Hold = "Not done yet: their SECURITY settings ask first. Ask them ";
 
+        internal static bool Locked(int toggle) { return toggle == Pays || toggle == Unasked || toggle == Secrets; }
+
         internal static bool On(int toggle)
         {
+            if (Locked(toggle)) return false;
             if (toggle == Wake && HeyOn != null) return HeyOn();
             lock (gate) return (mask & (1 << toggle)) != 0;
         }
 
         internal static void Set(int toggle, bool on)
         {
-            if (On(toggle) == on) return;
+            if (Locked(toggle) || On(toggle) == on) return;
             if (toggle == Wake && SetHey != null) SetHey(on);
             else lock (gate) mask = on ? mask | (1 << toggle) : mask & ~(1 << toggle);
             Action changed = Changed;
@@ -188,7 +187,7 @@ namespace CapriDesktop
                 int bits;
                 lock (gate) bits = mask;
                 if (HeyOn != null) bits = (bits & ~(1 << Wake)) | (HeyOn() ? 1 << Wake : 0);
-                return bits;
+                return bits & ~RestrictedMask;
             }
         }
 
@@ -202,9 +201,8 @@ namespace CapriDesktop
             if (changed != null) changed();
         }
 
-        // Toggles 1 to 10 the way Blackwall mode's switch used to set them, leaving "Hey Capri" and the toggles after it alone.
-        // Nothing is saved.
-        internal static void Jobs(bool blackwall) { lock (gate) mask = (mask & ((1 << Wake) | (1 << Friends) | (1 << Personal))) | (Masks[blackwall ? Blackwall : Trusted] & 0x3FF); }
+        // Compatibility for older callers: the former bypass now selects the safe Azure preset.
+        internal static void Jobs(bool azure) { Pick(azure ? Azure : Trusted); }
 
         // The preset their toggles match, or Custom. "Hey Capri" only counts where there's a wake word.
         internal static int Preset
@@ -219,19 +217,18 @@ namespace CapriDesktop
 
         internal static string PresetName { get { return Presets[Preset]; } }
 
-        // What the preset does, in a line. Without her jobs (Mac and Linux so far) Trusted never asks either, and without a
-        // wake word Blackwall's line doesn't promise one.
+        // What the preset does, in a line. Without a wake word Azure behaves like Trusted.
         internal static string PresetLine(int preset)
         {
             if (preset == Trusted && !Has(Mouse)) return "She does what you ask without asking first.";
-            if (preset == Blackwall && !Has(Wake)) return "She never asks before doing what you ask.";
+            if (preset == Azure && !Has(Wake)) return "Normal desktop actions are enabled; sensitive actions still need your confirmation.";
             return Told[Math.Max(0, Math.Min(Custom, preset))];
         }
 
-        internal static string Short { get { int preset = Preset; return preset == Blackwall && !Has(Wake) ? "She never asks first." : Shorts[preset]; } }
+        internal static string Short { get { int preset = Preset; return preset == Azure && !Has(Wake) ? "Normal actions on; sensitive actions stay protected." : Shorts[preset]; } }
 
         // Toggles 1 to 10 as 1s and 0s for their settings file, like "1111111000" for Trusted.
-        internal static string Saved { get { int bits; lock (gate) bits = mask; return Marks(bits); } }
+        internal static string Saved { get { int bits; lock (gate) bits = mask; return Marks(bits & ~RestrictedMask); } }
 
         internal static int MaskOf(int preset) { return Masks[preset]; }
 
@@ -251,8 +248,8 @@ namespace CapriDesktop
             return new string(marks);
         }
 
-        // Whether toggles 1 to 10 keep personal details out of her memories when their save doesn't say: yes, unless all ten
-        // are on, like Blackwall's. A save from before the toggle gets its preset's default this way, and a Custom mix gets it on.
+        // Whether ordinary permission toggles keep personal details out of memories when their save doesn't say.
+        // Restricted permission bits are cleared before this is evaluated.
         private static bool Kept(int bits) { return (bits & 0x3FF) != 0x3FF; }
 
         // Their saved toggles, or Trusted for anything unreadable. "Hey Capri" stays where it lives.
@@ -266,6 +263,7 @@ namespace CapriDesktop
                 if (saved.Length > Wake && saved[Wake] == '1') bits |= 1 << Friends;
                 if (saved.Length > Wake + 1 ? saved[Wake + 1] == '1' : Kept(bits)) bits |= 1 << Personal;
             }
+            bits &= ~RestrictedMask; // Migrate legacy Blackwall saves without restoring its permission bypass.
             lock (gate) mask = bits | (wake ? 1 << Wake : 0);
         }
 
@@ -513,8 +511,8 @@ namespace CapriDesktop
             }
         }
 
-        // Her brain's line about toggles that are off, so she still calls the tool and lets Capri ask instead of asking
-        // herself or saying it's done. Empty under Trusted and Blackwall, so their prompts are as they were.
+        // Her brain's line about toggles that are off, so she still calls the tool and lets Azure ask instead of asking
+        // herself or saying it's done. Empty under Trusted and Azure, so their prompts are as they were.
         internal static string Note
         {
             get
