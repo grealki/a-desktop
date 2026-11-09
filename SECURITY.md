@@ -43,7 +43,7 @@ Anything online sees ordinary connection details, such as your IP address and th
 
 What you send to OpenAI, Claude, DeepSeek, NVIDIA, Google AI (Gemini), OpenRouter, Fish Audio or ElevenLabs goes straight from your PC to them with your own key, including NVIDIA's free key. A custom OpenAI-compatible provider or server gets what you send it at the address you entered. None of it passes through anything of ours, and we never see it.
 
-Google AI requests go to `generativelanguage.googleapis.com/v1beta/openai/`; OpenRouter requests go to `openrouter.ai/api/v1`. A brain key goes only to its provider, and authenticated brain requests do not follow redirects. A custom provider key goes only to the address you entered, and authenticated requests there do not follow redirects. OpenRouter gets `X-Title: Capri`, with no `HTTP-Referer` or user identifier added by Capri. OpenRouter routes the request to the provider serving the selected model, whose privacy policy also applies.
+Google AI requests go to `generativelanguage.googleapis.com/v1beta/openai/`; OpenRouter requests go to `openrouter.ai/api/v1`. A brain key goes only to its provider, and authenticated brain requests do not follow redirects. A custom provider key goes only to the address you entered, and authenticated requests there do not follow redirects. OpenRouter gets `X-Title: Azure`, with no `HTTP-Referer` or user identifier added by Azure. OpenRouter routes the request to the provider serving the selected model, whose privacy policy also applies.
 
 What a provider logs or keeps is up to them, under their own privacy policy.
 
@@ -56,9 +56,9 @@ A local brain, her own ears and her local voices stay on your PC. A custom brain
 
 ## Windows or your antivirus warned me
 
-Her Windows builds aren't code signed, and each new release starts with no reputation, so you may see **Windows protected your PC**. Press **More info**, then **Run anyway**.
+If Windows shows **Windows protected your PC**, stop. Do not choose **Run anyway** or disable SmartScreen. Verify the publisher and download source before running an installer.
 
-Antivirus apps can flag her too. Taking screenshots, moving the mouse, pressing keys, listening to the mic and starting apps are her job, and they look a lot like what malware does. That usually means a false alarm, but an alert alone can't tell you a file is safe, so check it:
+Antivirus apps may flag desktop automation. Do not assume a detection is a false alarm. Keep antivirus enabled, and do not restore a quarantined file or add an exception unless its safety has been independently verified:
 
 1. Only download her from the [official release page](https://github.com/lachydotmcg/capri-desktop/releases/latest) or the [official website](https://capriai.app/).
 2. In PowerShell, from your download folder, run:
@@ -69,7 +69,7 @@ Antivirus apps can flag her too. Taking screenshots, moving the mouse, pressing 
 
 3. Compare the `Hash` with the `Capri-Setup.exe` line in `SHA256SUMS.txt` on the same release. A match means you have the file we published.
 
-Keep your antivirus on. If it quarantined her and the hash matches, restore that one file.
+Keep your antivirus on. A matching checksum verifies that the file matches that release, but it does not prove the release itself is safe. Do not restore or allow a quarantined file solely because its checksum matches.
 
 You can also build her yourself from the public code. [CONTRIBUTING.md](CONTRIBUTING.md) has what you need.
 
