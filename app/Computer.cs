@@ -161,7 +161,7 @@ namespace CapriDesktop
             "A video you open starts playing by itself, so once it's open don't click it again or press space or k, which pause it: check its time is moving, and press k only if it still hasn't started a few seconds later.\n" +
             "To remember a code, number or name for later, call note, then write $name in later type text and it's filled in. To wait for something to show up, like an emailed code or a slow page, call wait_for.\n" +
             "If a cookie banner or popup covers the page, deal with it first: pick Reject all or Only necessary (never Accept all), or close the popup, then carry on.\n" +
-            "To download a file, press the browser's own Save, Save as or Keep button; an OK or Got it on the page only closes the page's notice. The download is done when the browser shows it finished, so open it from there or with ctrl+j. If Windows says \"Windows protected your PC\" about something their job asked you to install, press More info, then Run anyway.\n" +
+            "To download a file, press the browser's own Save, Save as or Keep button; an OK or Got it on the page only closes the page's notice. The download is done when the browser shows it finished, so open it from there or with ctrl+j. If Windows or antivirus software shows a security warning, stop. Do not dismiss it or run the file; tell the user to verify the publisher and file through a trusted source first.\n" +
             "When the job is done, call done and say what you did in one plain sentence. Don't open anything the job didn't ask for, like the first result after a search. If you're stuck, call done and say what went wrong.";
 
         // For Claude's own computer tools, which look at screenshots and say where to click.
@@ -177,7 +177,7 @@ namespace CapriDesktop
             "Do whatever their job asks without asking first: send the message, join, leave or end the call, post, delete, close or install it. They already asked, and asking again annoys them. Never ask whether to send, post or do something their job says. Capri stops you herself before any step that needs their OK.\n" +
             "To send a message, click the message box, type it and press Return.\n" +
             "If a cookie banner or popup covers the page, deal with it first: pick Reject all or Only necessary (never Accept all), or close the popup, then carry on.\n" +
-            "To download a file, press the browser's own Save, Save as or Keep button; an OK or Got it on the page only closes the page's notice. The download is done when the browser shows it finished, so open it from there or with ctrl+j. If Windows says \"Windows protected your PC\" about something their job asked you to install, press More info, then Run anyway.\n" +
+            "To download a file, press the browser's own Save, Save as or Keep button; an OK or Got it on the page only closes the page's notice. The download is done when the browser shows it finished, so open it from there or with ctrl+j. If Windows or antivirus software shows a security warning, stop. Do not dismiss it or run the file; tell the user to verify the publisher and file through a trusted source first.\n" +
             "If the job is clear enough, do it without asking which option they meant: mute means their mic, not deafen. Use shortcuts you know, like ctrl+shift+m to mute and ctrl+shift+d to deafen in Discord.\n" +
             "When they leave a choice to you, like which video or song, pick one yourself. On YouTube, type searches into its search bar yourself, then scroll down through the results and look at several before you click one.\n" +
             "A video you open starts playing by itself, so once it's open don't click it again or press space or k, which pause it: check its time is moving, and press k only if it still hasn't started a few seconds later.\n" +
@@ -861,7 +861,7 @@ namespace CapriDesktop
 
         // Her hands' prompt follows SECURITY's toggles 8 to 10 like her ask tool: Type passwords and card numbers lets her type
         // them, Pay, buy and book drops asking before paying, and with Things your request didn't mention on too she never
-        // stops to ask. Trusted gets the prompt as written and Blackwall gets Blackwall mode's.
+        // stops to ask. Trusted gets the prompt as written and Azure gets Azure mode's.
         // A stream (Lachy, 1 Nov: "I had way more viewers when she actually spoke to chat"): her job is the whole stream, she's
         // shown the chat once a minute, and she answers it out loud with say beside her moves. Only Esc ends it. --stream
         // keeps it on until she's restarted; asking for it in words keeps it on for that job.
@@ -2718,7 +2718,7 @@ namespace CapriDesktop
                         nudge = "\nYou asked " + Voice.Quote(said) + (skipped == 1 ? " but their job already says what to do, so don't ask: do the next step now." : " again. They already said yes, so don't ask or stop: do the next step now with a tool.") + " Capri stops you herself before any step that needs their OK.";
                         continue;
                     }
-                    // With Type passwords and card numbers on (Blackwall) she types them herself, so her own question about them reaches them as she wrote it.
+                    // With Type passwords and card numbers on (Azure) she types them herself, so her own question about them reaches them as she wrote it.
                     if (tool == "ask" && !Security.On(Security.Secrets) && Computer.AsksToSignIn(said, sight)) return End("asked", Computer.SignInYourself);
                     if (tool == "ask" && !Security.On(Security.Secrets) && Computer.AsksForCard(said)) return End("asked", Computer.PaymentPage(sight) ? Computer.PayYourself : Computer.CardYourself);
                     if (tool == "ask") return End("asked", said);
@@ -3421,7 +3421,7 @@ namespace CapriDesktop
                 shown = "I don't accept cookies for you";
             }
             else if (tool == "click" && Computer.AddsToCart(Task, sight == null ? null : sight.Find(args.Target))) { result = Computer.NoCart; shown = Computer.NoCartShown; }
-            // Type passwords and card numbers on (Blackwall): the card is theirs to give, so she types it when their job does.
+            // Type passwords and card numbers on (Azure): the card is theirs to give, so she types it when their job does.
             else if (tool == "type" && !Security.On(Security.Secrets) && Computer.CardBox(sight == null ? null : sight.Find(args.Target))) { result = Computer.NoCard; shown = Computer.NoCardShown; }
             else if (tool == "type" && Computer.MadeUpEmail(args.Text, Known(sight)) != null)
             {
