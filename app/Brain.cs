@@ -366,8 +366,7 @@ namespace CapriDesktop
         internal readonly bool Code;
         private volatile string model;
         internal string Model { get { return Code ? Brain.Fastest : model; } set { model = Code ? Brain.Fastest : value; } }
-        internal volatile string CodeNote = "Capri code: Claude Haiku 5.5.";
-        internal Cloud(string key, string model) { Code = IsCode(key); Key = Code ? key.Trim().ToUpperInvariant() : key; Kind = KindOf(Key); Model = model; }
+        internal Cloud(string key, string model) { Code = false; Key = key; Kind = KindOf(Key); Model = model; }
         internal Cloud(int port, string model, string address = null) { Host = Brain.LocalAddress(address) ?? Brain.LocalHost(port); Port = new Uri(Host).Port; Kind = "local"; Model = model; }
         internal bool Claude { get { return Kind == "anthropic"; } }
         // Their own Claude or ChatGPT plan, through Claude Code or Codex on their PC.
@@ -378,20 +377,6 @@ namespace CapriDesktop
         internal string Source { get { return Kind + (Kind == "local" ? "|" + Host : "") + "|" + Model; } }
         internal string Sight { get { return Kind == "local" || Kind == "google" || Kind == "openrouter" ? Source : Model; } }
 
-        // Capri-issued access codes and their proxy service are not supported by Azure.
-        internal static bool IsCode(string key) { return false; }
-
-        internal void ReadCode(WebHeaderCollection headers)
-        {
-            if (!Code) return;
-            decimal left;
-            if (!decimal.TryParse(headers["capri-code-left"], System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out left) || left < 0) return;
-            string note = "Capri code: Claude Haiku 5.5, $" + left.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + " left";
-            DateTime ends;
-            if (DateTime.TryParse(headers["capri-code-expires"], System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out ends)) note += " until " + ends.ToString("d MMM", System.Globalization.CultureInfo.InvariantCulture);
-            CodeNote = note + ".";
-        }
-
         internal static string KindOf(string key)
         {
             if (string.IsNullOrEmpty(key)) return null;
@@ -400,7 +385,7 @@ namespace CapriDesktop
             if (key.StartsWith("AIza", StringComparison.Ordinal) || key.StartsWith("AQ.", StringComparison.Ordinal)) return "google";
             if (key.StartsWith("sk-or-", StringComparison.Ordinal)) return "openrouter";
             if (key.StartsWith("sk-nous-", StringComparison.Ordinal)) return null;
-            if (key.StartsWith("sk-ant-", StringComparison.Ordinal) || IsCode(key)) return "anthropic";
+            if (key.StartsWith("sk-ant-", StringComparison.Ordinal)) return "anthropic";
             if (key.StartsWith("nvapi-", StringComparison.Ordinal)) return "nvidia";
             if (Regex.IsMatch(key, "^sk-[0-9a-f]{32}$")) return "deepseek";
             return key.StartsWith("sk-", StringComparison.Ordinal) ? "openai" : null;
@@ -4233,7 +4218,6 @@ namespace CapriDesktop
                     using (Stream incoming = response.GetResponseStream())
                     {
                         if (sign != null) CheckRedirect(response);
-                        if (sending != null && sending.Code && request.Headers["x-api-key"] == sending.Key) sending.ReadCode(response.Headers);
                         T reply;
                         if (typeof(T) == typeof(string)) using (StreamReader text = new StreamReader(incoming, Encoding.UTF8)) reply = (T)(object)text.ReadToEnd();
                         else if (typeof(T) == typeof(CompletionReply) && (response.ContentType ?? "").StartsWith("text/event-stream", StringComparison.OrdinalIgnoreCase)) reply = (T)(object)ReadCompletion(incoming, secret);
@@ -4245,7 +4229,6 @@ namespace CapriDesktop
                 catch (WebException error)
                 {
                     if (error.Response == null) throw;
-                    if (sending != null && sending.Code && request.Headers["x-api-key"] == sending.Key) sending.ReadCode(error.Response.Headers);
                     Log(url, took.ElapsedMilliseconds, "HTTP " + (int)((HttpWebResponse)error.Response).StatusCode + (sending == null ? "" : " model " + sending.Model) + " body " + payload.Length + " bytes");
                     BrainException problem = Problem(error, sign != null, sending != null ? sending.Kind : null, secret);
                     if (sending != null && problem.RetryAt != default(DateTime))
