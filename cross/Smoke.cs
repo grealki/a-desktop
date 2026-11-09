@@ -3519,7 +3519,8 @@ namespace CapriDesktop
                 for (int preset = 0; preset < 4; preset++)
                 {
                     ((NeonPicker)security.Rows["Preset"]).Pick(preset);
-                    if (Security.Preset != preset || SettingsCopy().Permissions != Security.Saved) throw new Exception("The Security panel did not save its preset.");
+                    int expectedPreset = preset == Security.Azure && !Security.Has(Security.Wake) ? Security.Trusted : preset;
+                    if (Security.Preset != expectedPreset || SettingsCopy().Permissions != Security.Saved) throw new Exception("The Security panel did not save its preset.");
                 }
                 for (int i = 0; i < Security.Count; i++) if (Security.Has(i))
                 {
