@@ -77,14 +77,13 @@ namespace CapriDesktop
             return "said \"" + Voice.Short(line) + "\"";
         }
 
-        // Her rules follow SECURITY like Windows': Blackwall lets her type passwords and says yes to every step ahead of time.
+        // Credentials are always entered by the user and sensitive actions always require explicit confirmation.
         internal static string Allowed
         {
             get
             {
                 string rules = Rules;
-                if (Security.On(Security.Secrets)) rules = rules.Replace(Secrets, "Type passwords, card numbers and codes whenever their job needs them. ");
-                if (Security.On(Security.Pays) && Security.On(Security.Unasked)) rules = rules.Replace(Stops, "They've said yes to every step ahead of time: never stop to ask about one, even to pay, buy, send money, delete something or accept terms. ");
+                // Security locks these permissions off regardless of saved settings or preset.
                 return rules;
             }
         }
