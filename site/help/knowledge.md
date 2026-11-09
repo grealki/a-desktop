@@ -1915,7 +1915,7 @@ Then check the exact message, your Capri version (top of the Mainframe), and the
 - Phone says "dangerous download": Capri is a PC app. Download it on your PC.
 - "Quit Capri from her tray menu, then install again.": quit Capri first.
 - Windows 7, 8 or 32-bit Windows: not supported. Capri needs Windows 10 or 11, 64-bit.
-- Capri vanished after installing, or the shortcut doesn't work: your antivirus probably removed Capri.exe. Restore it from quarantine, allow it, then run Capri-Setup.exe again.
+- Capri vanished after installing, or the shortcut doesn't work: check your antivirus notification and leave any flagged file quarantined. Do not restore it or create an exception unless its safety has been independently verified.
 - An "authorization" or permission error while installing: Capri doesn't need admin rights. Run Capri-Setup.exe from your Downloads folder and check your antivirus didn't block it. Still failing? Post a screenshot of the exact message in the Discord.
 - The installer "disappeared": work out which happened. The browser download failed, the file vanished after it downloaded, the installer opened and closed, or Capri opened and closed. They have different fixes. One "permissions" problem was really Opera's download failing while Bitdefender quarantined the browser's cache.
 - For a real antivirus detection, note the antivirus, the exact detection name, the file's path and where you downloaded it, and post them in the Discord. Don't turn your antivirus off.
