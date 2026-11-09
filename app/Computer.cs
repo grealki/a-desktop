@@ -135,17 +135,11 @@ namespace CapriDesktop
         internal const string OffScreen = "That isn't on the screenshot";
         internal const string NoClick = "Couldn't see where to click, so I stopped.";
         internal const string Exact = "\nTheir exact words: ";
-        // Blackwall mode (Bypass all permissions before 0.7.4) is now toggles 8 to 10 of her SECURITY window: with all three on
-        // she never stops to check, even to buy or delete, and nothing here refuses a step. True while they're all on. Setting
-        // it sets toggles 1 to 10 to Blackwall's or Trusted's, like the old switch, and leaves "Hey Capri" alone.
-        internal static bool Bypass
-        {
-            get { return Security.On(Security.Pays) && Security.On(Security.Unasked) && Security.On(Security.Secrets); }
-            set { Security.Jobs(value); }
-        }
+        // Legacy compatibility only: unrestricted permission bypass is permanently disabled.
+        internal static bool Bypass { get { return false; } set { Security.Jobs(false); } }
 
-        // Toggle 10, Type passwords and card numbers: off, password and card boxes are theirs to fill.
-        private static bool Typist { get { return Security.On(Security.Secrets); } }
+        // Credentials and payment details are always entered by the user.
+        private static bool Typist { get { return false; } }
         private const int MostTargets = 70;
 
         internal const string MusicNote = "On Spotify, pick one best match of the requested kind, using its artist or owner when shown. Don't switch back and forth between songs, playlists and albums with the same name. Once the requested music is playing, finish the job. Play is a toggle: pressing it again pauses the music. A changed window title alone doesn't prove playback; check the Pause button and advancing playback time, or Windows' playing media session. If it is paused, press Play once and wait for playback before doing anything else.\n";
@@ -254,16 +248,12 @@ namespace CapriDesktop
               "{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\",\"description\":\"One plain sentence\"}},\"required\":[\"text\"]}" }
         };
 
-        // Under Blackwall mode they've said yes to every step ahead of time, so her ask tool is only for what only they know.
-        private const string BlackwallAsk = "Ask them only for something only they know, like who to message when they didn't say, or a login their job didn't give. They've said yes to every step ahead of time, so never ask before buying, paying, sending, posting, deleting or installing. When they leave a choice to you, pick it yourself.";
-
-        // Her ask tool's description follows SECURITY's toggles 8 to 10, so she never asks about a step they've said yes to
-        // ahead of time and Capri's own checks do the asking. Trusted and Blackwall keep the words they had.
+        // Sensitive actions always require explicit confirmation; credentials remain user-entered.
+        // The ask tool never claims blanket advance permission.
         internal static string AskLine()
         {
-            bool pays = Security.On(Security.Pays), unasked = Security.On(Security.Unasked), secrets = Typist;
+            bool pays = false, unasked = false, secrets = false;
             if (!pays && !unasked && !secrets) { for (int i = 0; i < Specs.GetLength(0); i++) if (Specs[i, 0] == "ask") return Specs[i, 1]; }
-            if (pays && unasked && secrets) return BlackwallAsk;
             List<string> before = new List<string>();
             if (!pays) before.Add("before a step that buys or pays");
             if (!unasked) before.Add("before sending, posting, deleting or installing something their job didn't ask for");
@@ -892,8 +882,7 @@ namespace CapriDesktop
         {
             bool pays = Security.On(Security.Pays), unasked = Security.On(Security.Unasked), secrets = Typist;
             if (!pays && !unasked && !secrets) return prompt;
-            string ahead = secrets ? "They turned on Blackwall mode (Bypass all permissions), so they've said yes to every step ahead of time: never stop to ask about one, even to buy, pay, send, post, delete or install."
-                : "Their SECURITY settings say yes to every step ahead of time: never stop to ask about one, even to buy, pay, send, post, delete or install.";
+            string ahead = "Sensitive actions always require explicit user confirmation. Never type passwords or payment details.";
             string allowed = prompt;
             if (secrets) allowed = allowed.Replace("Never type passwords, card numbers or other private details.", "Type passwords, card numbers and other private details whenever their job needs them.")
                 .Replace("If a page asks them to sign in, call ask and tell them to sign in themselves first.", "If a page asks them to sign in, use the email and password their job gives you. If it doesn't give them, call ask and tell them to sign in themselves first.");
@@ -1938,8 +1927,7 @@ namespace CapriDesktop
             catch (Exception) { return false; }
         }
 
-        // Under Bypass she types into password boxes too. What she typed there only ever shows as dots: in her task panel,
-        // her steps, what she says and her chat history.
+        // Password fields are always completed by the user. Secret text is never entered by automation.
         internal const string Dots = "••••••••";
         private static readonly List<string> secrets = new List<string>();
         internal static Func<bool> SecretFocus = FocusedSecret;
@@ -2511,9 +2499,9 @@ namespace CapriDesktop
             if (danger == null || approved.Contains(danger)) return false;
             // On stream she types in the game's own chat as part of playing.
             if (Computer.Streaming && danger == "send") return false;
-            if (danger == "keys") return !Security.On(Security.Unasked);
+            if (danger == "keys") return true;
             bool asked = danger == "buy" ? buys : told.Contains(danger);
-            return !Security.On(danger == "buy" ? Security.Pays : Security.Sends) || (!asked && !Security.On(Security.Unasked));
+            return danger == "buy" || !Security.On(Security.Sends) || (!asked && !Security.On(Security.Unasked));
         }
 
         internal bool Asking { get { return Waiting.Key != null; } }
