@@ -838,7 +838,7 @@ namespace CapriDesktop
                     throw new Exception("Her privacy boundary went wrong: " + streetNote + " / " + cardNote + " / " + emailLabel + " / " + emailValue + " / " + plainName + " / " + Brain.Notes());
                 checks.Add("PASS privacy boundary: an address, a card number, an email label and an email value stay out of her notes, and a plain name still goes in");
                 // SECURITY's Keep personal details out of her memories (on here, as in Trusted): a card game label is kept and a card
-                // number isn't; off, as in Blackwall, Get to know me's answers and what she saw are kept as they are, and her notes
+                // number isn't; off, when the personal-details toggle is disabled, Get to know me's answers and what she saw are kept as they are, and her notes
                 // keep only their rule from before #88, so a card number still stays out.
                 string cardGame = Brain.Jot("Favourite card game", "Uno"), cardLabel = Brain.Jot("Card number", "4111 1111 1111 1111");
                 bool cardGameKept = cardGame == null && cardLabel == Brain.Private && Brain.Notes() == "- Favourite card game: Uno";
@@ -4310,11 +4310,11 @@ namespace CapriDesktop
                 foreach (int i in new[] { Security.Open, Security.Media, Security.Shortcuts, Security.Windows, Security.Power, Security.Personal }) want.Add(((mask & (1 << i)) != 0 ? "*" : "") + Security.Names[i] + " (" + Security.Lines[i] + ")");
                 return string.Join(" | ", want);
             };
-            string[] presetBits = { "0000000000001", "1110000000001", "1111111000001", "1111111111100" };
+            string[] presetBits = { "0000000000001", "1110000000001", "1111111000001" };
             List<string> wrong = new List<string>();
             string first = pet.SecurityShown;
             bool startedTrusted = Security.Preset == Security.Trusted && first == menu(Security.Trusted, Security.MaskOf(Security.Trusted));
-            for (int preset = Security.Lockdown; preset <= Security.Blackwall; preset++)
+            for (int preset = Security.Lockdown; preset <= Security.Trusted; preset++)
             {
                 pet.ClickSecurity(preset, -1);
                 string shown = pet.SecurityShown;
@@ -4334,7 +4334,7 @@ namespace CapriDesktop
             pet.ClickSecurity(-1, Security.Open);
             bool back = Security.Preset == Security.Trusted && pet.Saved.Permissions == "1111111000" && pet.SecurityShown == menu(Security.Trusted, Security.MaskOf(Security.Trusted));
             bool windowsOnly = customShown.IndexOf("mouse and keyboard", StringComparison.Ordinal) < 0 && customShown.IndexOf("Hey Capri", StringComparison.Ordinal) < 0 && customShown.IndexOf("passwords", StringComparison.Ordinal) < 0 && customShown.IndexOf("Pay, buy", StringComparison.Ordinal) < 0;
-            bool lines = Security.PresetLine(Security.Trusted) == "She does what you ask without asking first." && Security.PresetLine(Security.Blackwall) == "She never asks before doing what you ask." && Security.PresetLine(Security.Guarded) == "She opens apps and sites, plays music and presses shortcuts, and asks first for the rest.";
+            bool lines = Security.PresetLine(Security.Trusted) == "She does what you ask without asking first." && Security.PresetLine(Security.Azure) == "Normal desktop actions are enabled; sensitive actions still need your confirmation." && Security.PresetLine(Security.Guarded) == "She opens apps and sites, plays music and presses shortcuts, and asks first for the rest.";
             Settings older = (Settings)new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(Settings)).ReadObject(new MemoryStream(Encoding.UTF8.GetBytes("{\"Model\":\"qwen3:8b\",\"Watch\":true}")));
             Security.Load(older.Permissions);
             bool olderTrusted = older.Permissions == null && Security.Preset == Security.Trusted;
@@ -4347,7 +4347,8 @@ namespace CapriDesktop
             // Keep personal details out of her memories: a save from before it gets its preset's default, and only a save that
             // turned it the other way takes a 12th mark, so older builds still read the rest.
             Security.Load("1111111111");
-            bool personal = !Security.On(Security.Personal) && Security.Saved == "1111111111";
+            bool personal = Security.On(Security.Personal) && Security.Saved == "1111111000"
+                && !Security.On(Security.Pays) && !Security.On(Security.Unasked) && !Security.On(Security.Secrets);
             Security.Load("0111111000");
             personal &= Security.On(Security.Personal) && Security.Saved == "0111111000";
             Security.Load("111111100000");
@@ -4360,7 +4361,7 @@ namespace CapriDesktop
             Security.Load(pet.Saved.Permissions);
             if (wrong.Count > 0 || !startedTrusted || !custom || !written || !reloaded || !back || !windowsOnly || !lines || !olderTrusted || !olderBits || !unreadable || !personal)
                 throw new Exception("Security's menu went wrong: " + string.Join(" / ", wrong) + " / first " + first + " / custom " + customShown + " / " + written + " " + reloaded + " " + back + " " + windowsOnly + " " + lines + " " + olderTrusted + " " + olderBits + " " + unreadable + " " + personal);
-            checks.Add("PASS Security menu: Settings > Security starts on Trusted; Lockdown, Guarded, Trusted and Blackwall tick the toggles under them (the five Mac and Linux have and Keep personal details out of her memories, each with its plain line), a toggle click makes it Custom and is saved for next time, ticking it again is Trusted, and settings from before it, or unreadable ones, get Trusted; a save from before Keep personal details out of her memories gets it off for Blackwall's ten and on otherwise, and only turning it the other way adds a 12th mark");
+            checks.Add("PASS Security menu: Settings > Security starts on Trusted; Lockdown, Guarded and Trusted set the available desktop toggles, a toggle click makes it Custom and is saved for next time, and older or unreadable settings load safely; legacy unrestricted bypass settings have payment, extra-action and credential permissions cleared, and personal-detail protection enabled.");
 
             // A toggle that's off holds the call and she asks first; a yes runs it once, a no leaves it and anything else drops it.
             List<string> did = new List<string>();
@@ -4814,7 +4815,7 @@ namespace CapriDesktop
                 Chores.Mouse = mouseWas;
             }
             fail("her pointer glides and parks", glided.Count >= 8 && glided[glided.Count - 1][0] == 0.75 && glided[glided.Count - 1][1] == 0.6 && Math.Abs(glided[0][0] - 0.25) < 0.2 && parked == 1);
-            Security.Pick(Security.Blackwall);
+            Security.Pick(Security.Trusted);
             List<string> streamLines = new List<string>();
             Chores.Says = streamLines.Add;
             string streamStep = Chores.Say("  Hi Milo!  ");
