@@ -378,7 +378,8 @@ namespace CapriDesktop
         internal string Source { get { return Kind + (Kind == "local" ? "|" + Host : "") + "|" + Model; } }
         internal string Sight { get { return Kind == "local" || Kind == "google" || Kind == "openrouter" ? Source : Model; } }
 
-        internal static bool IsCode(string key) { return Regex.IsMatch((key ?? "").Trim().ToUpperInvariant(), @"\ACAPRI(-[0-9A-HJKMNP-TV-Z]{4}){4}\z"); }
+        // Capri-issued access codes and their proxy service are not supported by Azure.
+        internal static bool IsCode(string key) { return false; }
 
         internal void ReadCode(WebHeaderCollection headers)
         {
@@ -632,7 +633,6 @@ namespace CapriDesktop
         internal static string Ollama = "http://127.0.0.1:11434";
         internal static string OpenAi = "https://api.openai.com";
         internal static string Anthropic = "https://api.anthropic.com";
-        internal static string Codes = "https://capri-reactions.lachydotmcg.workers.dev/brain";
         internal static string DeepSeek = "https://api.deepseek.com";
         internal static string Nvidia = "https://integrate.api.nvidia.com";
         internal static string Google = "https://generativelanguage.googleapis.com/v1beta/openai";
@@ -2087,7 +2087,7 @@ namespace CapriDesktop
             throw new BrainException("That key's provider isn't supported.", true);
         }
 
-        internal static string ClaudeAddress(string key, string path) { return (Cloud.IsCode(key) ? Codes : Anthropic) + "/v1" + path; }
+        internal static string ClaudeAddress(string key, string path) { return Anthropic + "/v1" + path; }
 
         internal static bool Stalled(Exception error)
         {
@@ -2144,12 +2144,12 @@ namespace CapriDesktop
         private static void Sign(HttpWebRequest request, string key, bool claude)
         {
             request.AllowAutoRedirect = false;
-            if (Cloud.KindOf(key) == "openrouter") request.Headers["X-Title"] = "Capri";
+            if (Cloud.KindOf(key) == "openrouter") request.Headers["X-Title"] = "Azure";
             bool headerKey;
             lock (headerKeys) headerKey = headerKeys.Contains(Door(key, request.RequestUri.AbsoluteUri));
             if (headerKey) { request.Headers["x-goog-api-key"] = key; return; }
             if (!claude) { request.Headers["Authorization"] = "Bearer " + key; return; }
-            request.Headers["x-api-key"] = Cloud.IsCode(key) ? key.Trim().ToUpperInvariant() : key;
+            request.Headers["x-api-key"] = key;
             request.Headers["anthropic-version"] = "2026-10-21";
         }
 
@@ -4362,8 +4362,7 @@ namespace CapriDesktop
             if (!string.IsNullOrEmpty(secret)) said = said.Replace(secret, "[redacted]");
             Log(url, -1, said);
             bool toolless = (status == 400 || status == 404 || status == 422) && Toolless(said);
-            bool code = Cloud.IsCode(secret) && (status == 401 || status == 403) && Regex.IsMatch(said, @"\AThat Capri code (isn't right|was switched off|has expired|has used up its budget)\.\z");
-            string meaning = code ? said : remote && !toolless ? Meaning(status, text, kind == "google", kind == "openai", Cloud.CompanyOf(kind)) : null;
+            string meaning = remote && !toolless ? Meaning(status, text, kind == "google", kind == "openai", Cloud.CompanyOf(kind)) : null;
             if (meaning == Busy && Watching()) meaning = BusyWatching;
             BrainException problem = meaning != null ? new BrainException(meaning, true) : new BrainException(said);
             problem.Status = status;
