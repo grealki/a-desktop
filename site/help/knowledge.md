@@ -79,7 +79,7 @@ Press Y in the headset to open her settings. Her brain and voice keys stay on th
 ### Steps
 1. Download Capri-Setup.exe from the website.
 2. Open it.
-3. If you see "Windows protected your PC": More info > Run anyway.
+3. If Windows shows a security warning, stop. Do not choose "Run anyway"; verify the publisher and download source first.
 4. In the "Install Capri" window, press Install Capri.
 5. It then says "Installing the local speech model": that's her free voice, about 316 MB. "This may take some time. For a better sounding, faster voice, get an API key." You can press Skip and get it later from the Mainframe.
 6. Capri opens when it's done (the "Open Capri when finished" box is ticked by default).
@@ -91,7 +91,7 @@ From 0.7.7 the installer looks like the Mainframe and has no Windows title bar: 
 If the speech model fails it says "Couldn't install the local speech model" and "Capri is installed. Get it later in Capri Mainframe, or add an API key." Press Finish. Capri still works; get her free voice later with Get free voice under VOICE.
 
 ### Why does Windows warn me?
-Capri is new and not signed yet, so SmartScreen doesn't know it. That's normal for new apps. The code is open on GitHub, so anyone can check it.
+SmartScreen may warn about unsigned or unfamiliar apps. Treat the warning seriously: do not bypass it or disable Windows protections. Verify the publisher and source before running any installer.
 
 ### Does it need admin rights?
 No. It installs for your Windows user only, into %LOCALAPPDATA%\Capri (open the Run box with Win + R and paste that to see it).
@@ -120,13 +120,13 @@ Your browser or antivirus held the file back.
 The same fix applies to "Windows cannot access the specified device, path, or file".
 
 ### My antivirus says it's a virus or Trojan
-If you downloaded it from the Capri website or GitHub, it's a false alarm on a new, unsigned app. Names people have seen:
+A detection must not be assumed to be a false alarm, even when a file came from a familiar website. Keep antivirus enabled and do not restore or allow a quarantined file unless its safety has been independently verified. Examples of detections users may encounter include:
 - Microsoft Defender: Trojan:Win32/Wacatac.H!ml
 - Bitdefender: Gen:Variant.Zusy or Gen:Suspicious.Cloud
 - Malwarebytes: MachineLearning/Anomalous.100%
 - Kaspersky: PDM:Trojan.Win32.Bazon.a on Capri.exe, HEUR:Trojan.MSIL.Startun.gen or UDS:Trojan.MSIL.Startun.gen on Capri-Setup.exe, and UDS:DangerousObject.Multi.Generic on Uninstall.exe or an older installer. PDM means Kaspersky's behaviour check flagged what the app does, not a known virus. Capri reads your shortcut keys, takes screenshots when you ask and moves the mouse for jobs, which behaviour checks can mistake for spyware. HEUR is a rule-of-thumb guess, and UDS is Kaspersky's cloud flagging a file that few people have run yet. MSIL only means a .NET app, which Capri is. Kaspersky Endpoint Security is usually run by a school or work IT team, so ask them to allow it.
 
-These are generic, machine-learning or behaviour detections. They often flag new apps that aren't signed yet. Restore the file from quarantine (or allow it in your antivirus), then run it again. If you want to be sure, check the code on GitHub or check the download's SHA256 (below).
+Detection names and categories are not proof that a file is safe or unsafe. Do not restore a quarantined file, add an antivirus exception, or disable protection just to install it. Check the publisher, verify the download against a trusted release checksum, and ask a trusted administrator or security professional if the warning remains.
 
 On VirusTotal, a few of about 70 engines flagging Capri.exe or Capri-Setup.exe is the same kind of detection. People have seen Bkav Pro (W32.Malware), SecureAge (Malicious) and Trapmine (Suspicious.low.ml.score). The SHA256 check below tells you whether your file is the one on the release page.
 
@@ -287,7 +287,7 @@ Before 0.7.3, ElevenLabs voice calls made her say something like "you still ther
 That's Check in on me (called Pop in on me before 0.7.3), on by default since 0.7.3. Every 8 to 20 minutes she glitches in to say hi, and if you're using your PC but haven't clicked or talked to her for about 2 hours, she asks for some attention. With Wander off (Settings > MOVES), or when you've put her somewhere with Sit here or Hang here, she says hi and asks from where she is instead of moving (from 0.7.6). To see her less or more, open Capri Mainframe, click Settings, and set Pop-ins under MOVES to Rarely (every 20 to 40 minutes) or Often (every 3 to 8 minutes). She also cheers when Cyberpunk 2077 starts or a 2077 or Edgerunners song comes on in Spotify or YouTube, at most once every two hours for each, and when your CPU sits near 100% for about a minute she jokes that she might go cyberpsycho (at most every half hour, never over a full-screen game). To stop all of it, open Capri Mainframe, click Settings, and turn off Check in on me under CAPRI. It stays off after updates. On Mac and Linux it's right-click her > Settings > Check in on me, and Pop-ins sets how often. There she pops in to say hi, even when hidden, asks for attention, cheers for Cyberpunk 2077 and Night City songs, and makes the lag joke, like on Windows.
 
 ### She keeps asking me to confirm things
-From 0.7.3 anything you ask counts as already allowed: she does every part of it, picks the song or video herself when you leave it to her, and doesn't ask if you're sure. From 0.7.6 what she asks about is yours to pick in the SECURITY window: Capri Mainframe > Settings > HABITS > Security, where Blackwall mode was (section 15, "Security: what she does without asking"). On Trusted, the default, she still asks before buying or paying, or before sending, posting, deleting or installing something you didn't mention. Pick Blackwall to stop even that (before 0.7.6 that was Blackwall mode, and before 0.7.4 Bypass all permissions). If she asks something like "Open Spotify? Say yes and I will." about things she used to just do, one of her toggles is off: turn it back on, or pick Trusted. On Mac and Linux it's right-click her > Settings > Security.
+From 0.7.3 anything you ask counts as already allowed: she does every part of it, picks the song or video herself when you leave it to her, and doesn't ask if you're sure. From 0.7.6 what she asks about is yours to pick in the SECURITY window: Capri Mainframe > Settings > HABITS > Security, where Azure mode was (section 15, "Security: what she does without asking"). On Trusted, the default, she still asks before buying or paying, or before sending, posting, deleting or installing something you didn't mention. Pick Azure to stop even that (before 0.7.6 that was Azure mode, and before 0.7.4 Bypass all permissions). If she asks something like "Open Spotify? Say yes and I will." about things she used to just do, one of her toggles is off: turn it back on, or pick Trusted. On Mac and Linux it's right-click her > Settings > Security.
 
 ### Can she open a few apps at once?
 Yes: "open Discord, Spotify and Steam" opens all three, and so does a list of sixty. There's no ceiling on how many, on any brain. When a list runs past what her brain's reply has room for, she asks it again with double the room, as many times as it takes, so a long list takes a few seconds longer, more on a brain running on your PC. If a brain still can't finish it, every app it wrote out in full opens anyway (from 0.7.6).
@@ -450,7 +450,7 @@ HABITS
 - Start with Windows: on by default. She starts when you sign in to Windows.
 - Show on Discord: on by default. While Discord is open on the same PC, your Discord profile shows "Playing Capri" with what she's doing in a few plain words (Plugged in, Chatting, Voice chatting, Dancing to music, Using the computer, Playing a game, Streaming, Multiplying, Asleep or Taking a break), a moving picture of her that matches, how long she's been running, and Get Capri and Join her Discord buttons. While she's cloned, it counts how many of her there are. Song names, game names and what her jobs are about never show.
 - Use her cursor: on by default. She does music and video jobs with her own cursor, so you can watch her: to play a YouTube video she types in YouTube's search bar, scrolls through the results and picks one; to play a song she searches Spotify and presses play; when you ask to turn Spotify up or down she drags Spotify's volume slider (plain "turn it up" changes your PC's volume). Turn it off for the quick way (straight to the top result, Windows volume). If her brain gets lost on the way, she does it the quick way.
-- Security (0.7.6 and newer, where Blackwall mode was): the button says which preset you're on, like "Security: Trusted", and the line under it says what that means ("She asks before paying or what you didn't say."). It opens the SECURITY window, with Lockdown, Guarded, Trusted and Blackwall on a slider and thirteen toggles in 0.8.5 (section 15, "Security: what she does without asking"). Blackwall mode (called Bypass all permissions before 0.7.4) is the Blackwall preset now: if you had it on, you're on Blackwall after updating, and everyone else starts on Trusted, which is how she worked before. On any preset she never follows orders written on your screen, and Esc still stops her. What she'll chat about, open or play comes from her personality, her safety rules and the brain model you picked, whatever the preset.
+- Security (0.7.6 and newer, where Azure mode was): the button says which preset you're on, like "Security: Trusted", and the line under it says what that means ("She asks before paying or what you didn't say."). It opens the SECURITY window, with Lockdown, Guarded, Trusted and Azure on a slider and thirteen toggles in 0.8.5 (section 15, "Security: what she does without asking"). Azure mode (called Bypass all permissions before 0.7.4) is the Azure preset now: if you had it on, you're on Azure after updating, and everyone else starts on Trusted, which is how she worked before. On any preset she never follows orders written on your screen, and Esc still stops her. What she'll chat about, open or play comes from her personality, her safety rules and the brain model you picked, whatever the preset.
 - Power saver (under Security, 0.8.5 and newer): Off, In games (the default) or Always. While a game or anything full screen is in front, she draws herself less often while she sits still (15 frames a second instead of 30), runs her background checks once a second instead of four times, and her ears check the mic less often, so she might take a moment longer to hear you. Always does the same all the time. Your own settings stay as you set them: Watch my screen keeps its timing, and Listen for Capri, Hey Capri and Clip my games keep working. Simple Settings shows it. Her built-in brain is still the heaviest part, so use the free NVIDIA key while you play. Mac and Linux don't have Power saver yet.
 - Perch: how many frames a second she shows while she sits on a window: 10, 15, 20, 30 (default), 40, 50 or 60 fps. Her sway takes 2 seconds at every setting. 10 and 15 use less CPU. Above 30 she draws in-between frames, so she moves more smoothly but uses more CPU, and the HABITS line says "Perch over 30 fps uses more CPU". On Mac and Linux her perch stays at 30.
 - Remember our chats (under Use her cursor): on by default. She writes every chat into a daily transcript and folds older chats into memories.md. Both stay on your PC (section 13).
@@ -999,14 +999,14 @@ Press Ctrl + Alt + V again, or TALK, to stop.
 
 ### "Hey Capri" (0.7.6 and newer, Windows)
 Say "Hey Capri" and she starts voice chat, the same as Ctrl + Alt + V. If she's hidden she glitches in first. She says something short, like "I'm here." or "Yeah, choom?", then listens.
-- Where: Capri Mainframe > Settings > HABITS > Security > Listen for "Hey Capri". It's off by default, and the Blackwall preset turns it on.
+- Where: Capri Mainframe > Settings > HABITS > Security > Listen for "Hey Capri". It's off by default, and the Azure preset turns it on.
 - The first time you turn it on she downloads what it needs, once, and says so in her bubble and the Mainframe: an 18 MB listening pack ("Getting what I need to hear "Hey Capri"..."), plus her free voice (316 MB) first if it isn't in yet, because the wake word runs on the speech engine that comes with it. Then: "Listening for "Hey Capri". Nothing leaves your PC until you say it."
 - What it listens for: only the words "Hey Capri", in English for now. Other words, "Hey Siri", "Capri" on its own and the island of Capri don't start it.
 - It stays on your PC. A small speech model listens on your PC for those two words and keeps no recordings. Nothing you say leaves your PC until it hears "Hey Capri" and voice chat starts. After that it's ordinary voice chat: free voice chat stays on your PC, ElevenLabs voice chat sends your voice to ElevenLabs.
 - Windows shows its microphone-in-use icon in the taskbar the whole time it's on, because her mic is open. Turn it off and the icon goes away (unless another app is using your mic).
 - It pauses during voice chat, while your mic is muted (her mute key, or muted in Windows) and in Quiet (Ctrl + Alt + P), and closes the mic meanwhile. It doesn't hear her own voice: while she talks it hears nothing.
 - It uses the mic picked under VOICE > Mic, or Windows' default mic. Pick another mic, or unplug one, and it switches by itself.
-- Bluetooth headsets (0.7.7 and newer): it doesn't listen on a Bluetooth headset's mic, picked or default. While that mic is open the headset is on a call, and everything you hear through it drops to phone-call quality. She says once: "I'm not listening for "Hey Capri" on your Bluetooth headset: while its mic is open, everything you hear drops to phone-call quality. Pick another mic under VOICE, or use my talk key." Voice chat still uses the headset's mic. On 0.7.6 it does open the headset's mic, so YouTube and every other app sound muffled, distorted or low quality from a few seconds after she starts until you quit her. Fix on 0.7.6: turn off Listen for "Hey Capri" (the Blackwall preset turns it on), or pick a wired or USB mic under VOICE > Mic.
+- Bluetooth headsets (0.7.7 and newer): it doesn't listen on a Bluetooth headset's mic, picked or default. While that mic is open the headset is on a call, and everything you hear through it drops to phone-call quality. She says once: "I'm not listening for "Hey Capri" on your Bluetooth headset: while its mic is open, everything you hear drops to phone-call quality. Pick another mic under VOICE, or use my talk key." Voice chat still uses the headset's mic. On 0.7.6 it does open the headset's mic, so YouTube and every other app sound muffled, distorted or low quality from a few seconds after she starts until you quit her. Fix on 0.7.6: turn off Listen for "Hey Capri" (the Azure preset turns it on), or pick a wired or USB mic under VOICE > Mic.
 - Other apps get quieter while it listens: Windows turns other sounds down while a mic is open on its call device (by 80% unless you've changed it), and it counts her open mic as a call. Fix: Settings > System > Sound > More sound settings > Communications > Do nothing. Or turn off Listen for "Hey Capri".
 - It's light: about 4% of one CPU core while there's sound around, close to nothing in a quiet room, and it runs on its own, without her brain.
 - It missed you? Say it clearly, at a normal pace, and nearer the mic. It's tuned to start only on "Hey Capri", so a mumbled or far-off one can be missed.
@@ -1328,11 +1328,11 @@ For Discord she brings Discord to the front, presses the keys, then switches you
 - One job uses your mouse at a time. Ask for another while she's busy and it waits its turn.
 - A brain that can see can work from screenshots. Other brains can use buttons and words read from the screen on your PC. Small local models are useful for menus and word clicks, not reliable real game play.
 - "Send" sends the message. "Write", "type" or "draft" leaves it for you to send.
-- On Trusted, the default, she asks first before buying or paying for anything, or before sending, posting, deleting or installing something you didn't ask for. Reply yes, or no ("Okay, I left it alone."). Book now and Reserve count as paying. In SECURITY (Settings > HABITS > Security), Pay, buy and book on stops the first ask and Things your request didn't mention on stops the second; Send, post and delete what you asked for off makes her ask ("Should I send "hi"?") even about what you asked for. On Blackwall she never asks.
-- Keys that could run anything (Win + R, Win + X, Win + L, Shift + Delete, Ctrl + Shift + Esc, Ctrl + Alt + Delete) count as something you didn't mention: she asks "Should I press win+r?" first, and your yes covers the rest of that job (before 0.7.6 she only pressed them with Blackwall mode on).
-- She skips password boxes ("Won't type in a password box.") unless Type passwords and card numbers is on in SECURITY (Blackwall turns it on). It's the one toggle where off doesn't mean she asks: you type them yourself. On a sign-in page she says: "You'll need to sign in yourself first. I don't type passwords. Tell me when you're in and I'll carry on."
-- She doesn't type card numbers unless Type passwords and card numbers is on. A job that reaches a card form ends with: "It's at the payment page. You'll need to put in your card details and pay yourself. I don't type card numbers."
-- With Type passwords and card numbers on, she types passwords and card numbers when your job gives them. Anything she types into a password box shows as dots (••••••••) in the steps box, in her reply and in her saved chat, and she says "the password" out loud instead.
+- Payments, purchases and bookings always require a separate confirmation. Passwords and card details are always entered by you. Extra actions not included in your request always require confirmation. Sending or deleting something you explicitly requested still follows the ordinary Send setting.
+- Shortcuts that can launch programs or change system state require confirmation when the relevant permission is off.
+- She never types passwords, one-time codes or payment details. Sign in and enter those details yourself.
+- At a payment page, she stops and asks you to review and complete the payment yourself.
+- Credential fields are excluded from automated typing in every security preset.
 - Jobs have no step limit. Big models can work on one for as long as it takes; Esc stops her.
 - On forms she only types names, emails, phone numbers and addresses that your job, her notes or the screen gave her, never made-up ones like "John Doe". If your job doesn't give them, she asks: "This form needs First name, Last name and Email. What should I put?"
 - Cookie banners get Reject all or Only necessary unless your job says to accept cookies. Newsletter and app popups get No thanks or Close. She never clicks Add to cart unless your job says to.
@@ -1350,13 +1350,13 @@ Now and then she asks you to say please. Reply "please" and she does it.
 - She has no file tool yet, so she can't read what's inside your files.
 
 ### Security: what she does without asking (0.7.6 and newer)
-Capri Mainframe > Settings > HABITS > Security (where Blackwall mode was) opens the SECURITY window. A slider picks a preset, and thirteen toggles under it control her permissions and her memory in 0.8.5. Each toggle has a line saying what on and off mean. For action permissions, off means she asks first and does it when you say yes. With Type passwords and card numbers off, you type those yourself. Friends on a call can ask, you confirm is a separate opt-in for call mode. Esc or the X closes the window, and it's saved straight away, after updates too.
+Capri Mainframe > Settings > HABITS > Security opens the SECURITY window. A slider picks Lockdown, Guarded, Trusted or Azure. Ordinary-action toggles control desktop automation. Payment confirmation, approval for unrequested actions and manual credential entry are fixed safeguards in every preset and cannot be switched off. Friends on a call can ask, you confirm is a separate opt-in for call mode. Esc or the X closes the window, and settings are saved straight away.
 
 The presets:
 - Lockdown: every action toggle off. She asks first before she does anything on your PC.
 - Guarded: Open apps, games and sites, Music, media and volume, and Shortcuts on. She asks first for the rest.
 - Trusted (the default): the first seven on. She does what you ask, and asks first before paying or anything you didn't mention. It's how she worked before 0.7.6.
-- Blackwall: the first eleven toggles on, Listen for "Hey Capri" too. She does your requests without asking, and types the passwords and card numbers your job gives her. Friends on a call can ask, you confirm still starts off and always needs your confirmation. It's what Blackwall mode was (Bypass all permissions before 0.7.4). If you had Blackwall mode on, you're on Blackwall after updating; everyone else starts on Trusted.
+- Azure: ordinary desktop actions are enabled, and the optional wake-word feature is on. Payments still require confirmation, unrequested actions still require approval, and credentials remain user-entered. Friends on a call can ask, you confirm still starts off and always needs your confirmation. Previous unrestricted bypass settings are migrated to this safe preset.
 - Custom: flip any toggle and the preset says Custom. Click the slider, or drag it to a preset, to start again from that preset.
 
 The toggles, in order:
@@ -1370,9 +1370,9 @@ The toggles, in order:
 8. Pay, buy and book. Off, she asks before buying, paying or booking, even when you asked for it.
 9. Things your request didn't mention. Off, she asks before a send, post, delete, install or purchase your job didn't mention, and before keys that could run anything, like Win + R ("Should I press win+r?").
 10. Type passwords and card numbers. Off, she never types them: "You'll need to sign in yourself first."
-11. Listen for "Hey Capri": she listens on this PC for her name. Only Blackwall turns it on.
+11. Listen for "Hey Capri": she listens on this PC for her name. Azure enables it by default; you can change it separately.
 12. Friends on a call can ask, you confirm (0.8.3): off by default. In call mode, each friend's request waits for your mic or typing to confirm. See "Why can't my friends make her do things?" in section 12.
-13. Keep personal details out of her memories (0.8.5), under HER MEMORY: on in every preset but Blackwall. On, her notes leave out anything with an address, Get to know me leaves out answers like an email or a card number, what she remembers seeing leaves out addresses, numbers and emails, and in her jobs a form's name, email, address and card boxes show her "(value hidden)". Off, they work as before 0.8.5, and her notes still leave out passwords, card numbers, schools and home addresses.
+13. Keep personal details out of her memories (0.8.5), under HER MEMORY: on in every preset by default; a custom setting can change it. On, her notes leave out anything with an address, Get to know me leaves out answers like an email or a card number, what she remembers seeing leaves out addresses, numbers and emails, and in her jobs a form's name, email, address and card boxes show her "(value hidden)". Off, they work as before 0.8.5, and her notes still leave out passwords, card numbers, schools and home addresses.
 
 How she asks:
 - With one of the first six off, she answers "Open Spotify? Say yes and I will." Say yes (or yeah, sure, ok, do it) and she does it. Say no and she leaves it: "Okay, I left it alone." Say anything else and she drops it and answers that instead.
@@ -1381,7 +1381,7 @@ How she asks:
 - Inside a job, toggles 7 to 10 decide which steps she stops at to ask "Should I ...?". Yes carries on, no stops the job.
 - Looking at your screen, her notes, her own naps, moves and animations, checking what's playing and cancelling a shutdown never ask, even on Lockdown.
 
-On Mac and Linux it's right-click her > Settings > Security: the four presets and the five toggles Mac and Linux have (1 to 5), each with its line. Her mouse and keyboard jobs and "Hey Capri" are Windows-only so far, so there Trusted and Blackwall both do what you ask without asking first.
+On Mac and Linux it's right-click her > Settings > Security: the four presets and the five toggles Mac and Linux have (1 to 5), each with its line. Her mouse and keyboard jobs and "Hey Capri" are Windows-only so far, so there Trusted and Azure behave the same for the available desktop actions.
 
 ### Can she play a game for me?
 Say "play" and the game, like "play Bloons TD 6", by voice or text. She opens it if it isn't open, picks a mode or map herself and keeps playing until you tell her to stop or press Esc. Give her an end, like one round, a win or 10 minutes, and she stops there. With SECURITY's mouse and keyboard switch off, she asks first.
@@ -1525,8 +1525,8 @@ Her job panel moves to the bottom left so she isn't sitting on top of your chat.
 ### Her cursor
 When she takes the mouse, her cursor is now her own: her artist's drawing with red and black electricity around it. It crackles more when she moves and bursts when she clicks.
 
-### Blackwall on the security slider
-The security picker is bigger. On Blackwall it turns red and glitches. With Motion off it holds one still frame instead.
+### Azure on the security slider
+The security picker is bigger. On Azure it uses its accent colour and glitch effect. With Motion off it holds one still frame instead.
 
 ---
 
@@ -1786,7 +1786,7 @@ Code/Husk Mode works here too: Advanced Settings > BRAIN > Code/Husk Mode. Her h
 - Sleep on demand (0.7.6 and newer): right-click her > Go to sleep, or tell her "go to sleep" or "take a nap". She sleeps until you click her, talk to her or say "wake up", whatever the mouse and keyboard do.
 - Her own moves (0.7.6 and newer): "capri, teleport here", "go to my other monitor", "sit down", "stand up", "hang here", "let go", "hide" and "show yourself", and her animations by name ("dance", "stop dancing", "do your glitch", "smile", "blink", "play your idle animation"), even before she has a brain. Screens count from the left. Riding your cursor and moving the Mainframe are Windows-only, and she says so.
 - Getting to know you (0.7.6 and newer): on a new install, once she's said hello, she asks what to call you, your pronouns and what you're into in her typing box and writes the answers to me.md, like on Windows. Right-click her > Settings > Get to know me asks again.
-- Security (0.7.6 and newer): right-click her > Settings > Security picks Lockdown, Guarded, Trusted (the default) or Blackwall, and ticks the five toggles Mac and Linux have: Open apps, games and sites; Music, media and volume; Shortcuts; Close and switch apps and tabs; and Shut down, restart, sleep, lock and sign out. With one off she asks first ("Open Spotify? Say yes and I will.") and does it when you say yes, like on Windows. Untick or tick one and it says Custom.
+- Security (0.7.6 and newer): right-click her > Settings > Security picks Lockdown, Guarded, Trusted (the default) or Azure, and ticks the five toggles Mac and Linux have: Open apps, games and sites; Music, media and volume; Shortcuts; Close and switch apps and tabs; and Shut down, restart, sleep, lock and sign out. With one off she asks first ("Open Spotify? Say yes and I will.") and does it when you say yes, like on Windows. Untick or tick one and it says Custom.
 - Quiet: right-click her, or the tray or menu bar icon, > Quiet. It's the same as Windows' quiet key (Ctrl + Alt + P): she stops pop-ins, asking for attention, cheers, the lag joke and Watch my screen until you untick it, and still answers when you talk to her.
 - Remember our chats: a daily transcript and memories.md, like on Windows (right-click her > Settings). She digs through them on her own here too.
 
@@ -1811,7 +1811,7 @@ Follow the [Linux TALK setup](https://github.com/lachydotmcg/capri-desktop#linux
 - Move: Stay put, Wander: Rarely, Wander: Sometimes, Wander: Often, Wander: Restless, Dance to music, Dance (on until you untick it or say "stop dancing"), Go to the next screen (only with more than one screen), Fall asleep after (Never, 1 min, 2 min, 5 min, 10 min, 30 min), Glitch in at startup
 - Size: Tiny, Small, Medium, Large, Huge, Giant
 - Brain: your Ollama models. With Ollama open but no models yet: "Download gemma4:e4b, her brain (a few GB)". With Ollama closed or not installed: "Ollama isn't running. Install it from ollama.com and open it." Below them: Get a free NVIDIA key, and Use an API key... On a key it shows "NVIDIA key ending XXXX" (or ChatGPT, Claude, DeepSeek), that key's models to pick from, Stay on my model (NVIDIA keys only), and Forget the key and use Ollama.
-- Settings: What should she call you?, Get to know me, Language, Reply length, Chat memory, Bubble (Quick, Normal, Long), Sounds (Off, Quiet, Normal, Loud, Typing sound), Voice, Volume (Mute, 10% to 100%, 125%, 150%), Voice style (Pitch, Speed, Robot, Glitch, Layers, Layer 1 pitch, Layer 1 delay, Layer 2 pitch, Layer 2 delay), Check in on me, Pop-ins (Rarely, Sometimes, Often), Always on top, Watch my screen, Glance every (10 s to 10 min), Keep her caught up, Start at login, Show on Discord, Security (Lockdown, Guarded, Trusted, Blackwall, Custom, then the five toggles), Open her notes (me.md), Remember our chats, Open her memories (memories.md)
+- Settings: What should she call you?, Get to know me, Language, Reply length, Chat memory, Bubble (Quick, Normal, Long), Sounds (Off, Quiet, Normal, Loud, Typing sound), Voice, Volume (Mute, 10% to 100%, 125%, 150%), Voice style (Pitch, Speed, Robot, Glitch, Layers, Layer 1 pitch, Layer 1 delay, Layer 2 pitch, Layer 2 delay), Check in on me, Pop-ins (Rarely, Sometimes, Often), Always on top, Watch my screen, Glance every (10 s to 10 min), Keep her caught up, Start at login, Show on Discord, Security (Lockdown, Guarded, Trusted, Azure, Custom, then the five toggles), Open her notes (me.md), Remember our chats, Open her memories (memories.md)
 - Help: Help page, Copy error details
 - Join the Discord
 - Get Capri X, only when a new version is out
@@ -1908,9 +1908,9 @@ Updating to the latest version gets you everything in this guide.
 Then check the exact message, your Capri version (top of the Mainframe), and the exact BRAIN line, like "Built-in · Gemma 4 E4B" or "Ollama · gemma4:e4b". Try one fix at a time and check if it helped.
 
 ### Install and antivirus
-- "Windows protected your PC": More info > Run anyway.
+- "Windows protected your PC": stop. Do not choose "Run anyway" or disable SmartScreen; verify the publisher and download source first.
 - "Item Not Found", or the installer vanished: Ctrl + J > Keep in Chrome or Edge, or restore it from your antivirus quarantine. Open it from your Downloads folder.
-- Antivirus says Trojan, Wacatac, Zusy, Gen:Suspicious or MachineLearning/Anomalous: if you downloaded it from the Capri website or GitHub, it's a false alarm on a new unsigned app. Restore and allow it.
+- Antivirus says Trojan, Wacatac, Zusy, Gen:Suspicious or MachineLearning/Anomalous: do not assume it is a false alarm. Keep antivirus enabled; do not restore or allow the file until its safety is independently verified.
 - Opera "Insufficient permissions": use Chrome or Edge, or download from GitHub releases.
 - Phone says "dangerous download": Capri is a PC app. Download it on your PC.
 - "Quit Capri from her tray menu, then install again.": quit Capri first.
