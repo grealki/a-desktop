@@ -4305,7 +4305,7 @@ namespace CapriDesktop
             Func<int, int, string> menu = delegate(int preset, int mask)
             {
                 List<string> want = new List<string> { "Security: " + Security.Presets[preset] };
-                for (int i = 0; i <= Security.Custom; i++) want.Add((i == preset ? "*" : "") + Security.Presets[i] + (i == Security.Custom ? " (off)" : ""));
+                for (int i = 0; i <= Security.Custom; i++) want.Add((i == preset ? "*" : "") + Security.Presets[i] + (i == Security.Custom || (i == Security.Azure && !Security.Has(Security.Wake)) ? " (off)" : ""));
                 want.Add("-");
                 foreach (int i in new[] { Security.Open, Security.Media, Security.Shortcuts, Security.Windows, Security.Power, Security.Personal }) want.Add(((mask & (1 << i)) != 0 ? "*" : "") + Security.Names[i] + " (" + Security.Lines[i] + ")");
                 return string.Join(" | ", want);
