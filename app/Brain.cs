@@ -454,7 +454,7 @@ namespace CapriDesktop
         // Why this whole brain has no Thinking picker, or null when it has one.
         internal static string Closed(string kind, bool code)
         {
-            if (code) return "Capri codes stay on Low";
+            if (code) return "Legacy access codes are not supported";
             if (Plans.Is(kind)) return "its app sets this";
             return kind == "openai" || kind == "anthropic" || kind == "google" || kind == "deepseek" || kind == "nvidia" || kind == "openrouter" || kind == "kimi" ? null : "not for local brains";
         }
