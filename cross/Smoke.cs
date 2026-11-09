@@ -4349,6 +4349,10 @@ namespace CapriDesktop
             Security.Load("1111111111");
             bool personal = Security.On(Security.Personal) && Security.Saved == "1111111000"
                 && !Security.On(Security.Pays) && !Security.On(Security.Unasked) && !Security.On(Security.Secrets);
+            Security.Set(Security.Pays, true);
+            Security.Set(Security.Unasked, true);
+            Security.Set(Security.Secrets, true);
+            personal &= !Security.On(Security.Pays) && !Security.On(Security.Unasked) && !Security.On(Security.Secrets);
             Security.Load("0111111000");
             personal &= Security.On(Security.Personal) && Security.Saved == "0111111000";
             Security.Load("111111100000");
