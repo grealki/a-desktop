@@ -1924,11 +1924,6 @@ namespace CapriDesktop
         private void Heartbeat()
         {
             if (IsDisposed || support == null) { heartbeat.Stop(); return; }
-            if (menuRemote != null && menuRemote.Code && brainNote.Text.StartsWith("Capri code: ", StringComparison.Ordinal) && brainNote.Text != menuRemote.CodeNote)
-            {
-                brainNote.Text = menuRemote.CodeNote;
-                Arrange(expanded);
-            }
             float swell = 1, beat = 0;
             if (capri.Moves && WindowState != FormWindowState.Minimized && !Hidden(support)) Pulse(beatClock.Elapsed.TotalMilliseconds, out swell, out beat);
             if (swell == support.Swell && beat == support.Beat) return;
@@ -3604,16 +3599,16 @@ namespace CapriDesktop
         internal void ShowCloud(Cloud remote, List<string> found)
         {
             brainName.Text = remote.Name + (remote.Model == null ? "" : " · " + remote.Model);
-            brainNote.Text = remote.Code ? remote.CodeNote : remote.Kind == "local" ? "Running on this PC · :" + remote.Port : remote.Kind == "nvidia" ? NvidiaNote
+            brainNote.Text = remote.Kind == "local" ? "Running on this PC · :" + remote.Port : remote.Kind == "nvidia" ? NvidiaNote
                 : remote.Plan ? "Using your " + Plans.Plan(remote.Kind) + " · " + remote.Name + " on this PC" : "Using your " + remote.Company + " key";
-            models.Text = remote.Code ? "Claude Haiku 5.5" : remote.Plan ? Plans.Shown(remote.Kind, remote.Model) : remote.Model;
+            models.Text = remote.Plan ? Plans.Shown(remote.Kind, remote.Model) : remote.Model;
             models.Visible = remote.Model != null;
             hint.Visible = false;
             if (remote.Kind == "local") { LocalMenu(null, remote); Arrange(false); return; }
             // OpenRouter lists hundreds of models and NVIDIA over a hundred, and adding them one at a time laid the whole menu out
             // again for each: about 20 s frozen on every OpenRouter pick (NoxEterna, 1 Nov), and seconds after a slow NVIDIA reply,
             // which shows this again (Mika). The same list only moves its tick, and a new one goes in all at once.
-            string[] listed = (remote.Code ? new List<string> { Brain.Fastest } : found ?? (remote.Model == null ? new List<string>() : new List<string> { remote.Model })).ToArray();
+            string[] listed = (found ?? (remote.Model == null ? new List<string>() : new List<string> { remote.Model })).ToArray();
             if (remote == menuRemote && menuModels != null && modelMenu.Items.Count == listed.Length && System.Linq.Enumerable.SequenceEqual(menuModels, listed))
             {
                 foreach (ToolStripItem shown in modelMenu.Items)
@@ -3628,8 +3623,7 @@ namespace CapriDesktop
                 for (int i = 0; i < listed.Length; i++)
                 {
                     string pick = listed[i];
-                    ToolStripMenuItem choice = Choice(remote.Code ? "Claude Haiku 5.5" : Brain.Shown(remote.Kind, pick), pick == remote.Model, delegate { capri.ChooseCloudModel(remote, pick); });
-                    choice.Enabled = !remote.Code;
+                    ToolStripMenuItem choice = Choice(Brain.Shown(remote.Kind, pick), pick == remote.Model, delegate { capri.ChooseCloudModel(remote, pick); });
                     choice.Tag = pick;
                     choices[i] = choice;
                 }
