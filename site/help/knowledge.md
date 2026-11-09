@@ -1367,9 +1367,9 @@ The toggles, in order:
 5. Shut down, restart, sleep, lock and sign out
 6. Use your mouse and keyboard for jobs. Off, she asks before a job with her pink pointer, and does music and video the quick way instead of with her cursor.
 7. Send, post and delete what you asked for. Off, she asks "Should I send "hi"?" even about a message you asked her to send.
-8. Pay, buy and book. Off, she asks before buying, paying or booking, even when you asked for it.
-9. Things your request didn't mention. Off, she asks before a send, post, delete, install or purchase your job didn't mention, and before keys that could run anything, like Win + R ("Should I press win+r?").
-10. Type passwords and card numbers. Off, she never types them: "You'll need to sign in yourself first."
+8. Pay, buy and book. This permission is always off; every payment, purchase or booking requires your confirmation.
+9. Things your request didn't mention. This permission is always off; actions outside your request require your approval.
+10. Type passwords and card numbers. This permission is always off; you enter passwords, one-time codes and payment details yourself.
 11. Listen for "Hey Capri": she listens on this PC for her name. Azure enables it by default; you can change it separately.
 12. Friends on a call can ask, you confirm (0.8.3): off by default. In call mode, each friend's request waits for your mic or typing to confirm. See "Why can't my friends make her do things?" in section 12.
 13. Keep personal details out of her memories (0.8.5), under HER MEMORY: on by default in every preset; a custom setting can change it.
@@ -1378,7 +1378,7 @@ How she asks:
 - With one of the first six off, she answers "Open Spotify? Say yes and I will." Say yes (or yeah, sure, ok, do it) and she does it. Say no and she leaves it: "Okay, I left it alone." Say anything else and she drops it and answers that instead.
 - Ask for a few things and she does the ones that are on, then asks once about the rest: "Opened Spotify. Turn the volume up and lock your PC? Say yes and I will." One yes does them all.
 - In voice chat she asks out loud, and your spoken yes does it. It works before she has a brain too.
-- Inside a job, toggles 7 to 10 decide which steps she stops at to ask "Should I ...?". Yes carries on, no stops the job.
+- Inside a job, the Send setting controls requested sends, posts and deletes. Payments always require confirmation, actions outside the request always require approval, and credentials are always entered by you.
 - Looking at your screen, her notes, her own naps, moves and animations, checking what's playing and cancelling a shutdown never ask, even on Lockdown.
 
 On Mac and Linux it's right-click her > Settings > Security: the four presets and the five toggles Mac and Linux have (1 to 5), each with its line. Their available desktop actions are the same under Trusted and Azure.
