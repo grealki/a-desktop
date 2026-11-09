@@ -114,7 +114,7 @@ That's her Discord status. While Discord is open on the same PC, your profile sh
 ### "Item Not Found" or the installer disappeared
 Your browser or antivirus held the file back.
 1. In Chrome or Edge, press Ctrl + J and pick Keep on Capri-Setup.exe.
-2. If your antivirus removed it, restore it from quarantine.
+2. If your antivirus removed it, leave it quarantined until the file and publisher have been independently verified.
 3. Open it from your Downloads folder, not from the browser's download bar.
 
 The same fix applies to "Windows cannot access the specified device, path, or file".
@@ -124,7 +124,7 @@ A detection must not be assumed to be a false alarm, even when a file came from 
 - Microsoft Defender: Trojan:Win32/Wacatac.H!ml
 - Bitdefender: Gen:Variant.Zusy or Gen:Suspicious.Cloud
 - Malwarebytes: MachineLearning/Anomalous.100%
-- Kaspersky: PDM:Trojan.Win32.Bazon.a on Capri.exe, HEUR:Trojan.MSIL.Startun.gen or UDS:Trojan.MSIL.Startun.gen on Capri-Setup.exe, and UDS:DangerousObject.Multi.Generic on Uninstall.exe or an older installer. PDM means Kaspersky's behaviour check flagged what the app does, not a known virus. Capri reads your shortcut keys, takes screenshots when you ask and moves the mouse for jobs, which behaviour checks can mistake for spyware. HEUR is a rule-of-thumb guess, and UDS is Kaspersky's cloud flagging a file that few people have run yet. MSIL only means a .NET app, which Capri is. Kaspersky Endpoint Security is usually run by a school or work IT team, so ask them to allow it.
+- Kaspersky and other antivirus tools may report suspicious behaviour. Detection labels are not enough to determine whether a file is safe. Keep the protection enabled and ask a trusted administrator or security professional to review the file; do not create an exception simply to install it.
 
 Detection names and categories are not proof that a file is safe or unsafe. Do not restore a quarantined file, add an antivirus exception, or disable protection just to install it. Check the publisher, verify the download against a trusted release checksum, and ask a trusted administrator or security professional if the warning remains.
 
