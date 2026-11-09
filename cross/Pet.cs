@@ -2164,6 +2164,7 @@ namespace CapriDesktop
             securityMenu = new MenuItem { Header = "Security: " + Security.PresetName };
             for (int i = 0; i <= Security.Custom; i++)
             {
+                if (i == Security.Azure && !Security.Has(Security.Wake)) continue;
                 int preset = i;
                 MenuItem pick = new MenuItem { Header = Security.Presets[i], ToggleType = MenuItemToggleType.Radio, GroupName = "security", IsEnabled = i != Security.Custom };
                 ToolTip.SetTip(pick, Security.PresetLine(i));
