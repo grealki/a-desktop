@@ -2157,8 +2157,8 @@ namespace CapriDesktop
             discordItem = new MenuItem { Header = "Show on Discord", ToggleType = MenuItemToggleType.CheckBox };
             discordItem.Click += Guarded(delegate { SetDiscord(Saved.NoDiscord); });
             settings.Items.Add(discordItem);
-            // Security, like Windows' SECURITY window (Lachy, 29 Oct): Lockdown, Guarded, Trusted and Azure set the toggles
-            // under them, and flipping one makes it Custom. Each toggle has its plain line. Off means she asks first and does it
+            // Security: Lockdown, Guarded and Trusted set the available toggles. Azure is Windows-only because its wake word
+            // isn't available here. Each toggle has its plain line. Off means she asks first and does it
             // on your yes. Mac and Linux have the first five and Keep personal details out of her memories, and Linux her mouse and
             // keyboard jobs once uinput is set up; "Hey Capri" is Windows-only so far.
             securityMenu = new MenuItem { Header = "Security: " + Security.PresetName };
