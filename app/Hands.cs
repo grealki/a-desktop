@@ -264,6 +264,9 @@ namespace CapriDesktop
                 if (saved.Length > Wake + 1 ? saved[Wake + 1] == '1' : Kept(bits)) bits |= 1 << Personal;
             }
             bits &= ~RestrictedMask; // Migrate legacy Blackwall saves without restoring its permission bypass.
+            bool legacyBlackwall = (bits & 0x3FF) == 0x3FF;
+            bits &= ~RestrictedMask;
+            if (legacyBlackwall) bits |= 1 << Personal;
             lock (gate) mask = bits | (wake ? 1 << Wake : 0);
         }
 
