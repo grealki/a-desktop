@@ -850,7 +850,6 @@ namespace CapriDesktop
             return word;
         }
 
-        private const string OnlyAsk = "Only call ask before you buy or pay, or before a send, post, delete or install their job didn't mention; Capri stops you herself before any step that needs their OK.";
 
         // Her hands' prompt follows SECURITY's toggles 8 to 10 like her ask tool: Type passwords and card numbers lets her type
         // them, Pay, buy and book drops asking before paying, and with Things your request didn't mention on too she never
@@ -876,11 +875,10 @@ namespace CapriDesktop
 
         internal static bool Needless(string question)
         {
-            // With Pay, buy and book on, a question about paying is as needless as any other.
-            bool pays = Security.On(Security.Pays);
-            if (!pays && Costly.IsMatch(question ?? "")) return false;
+            // Payment and purchase questions must never be suppressed.
+            if (Costly.IsMatch(question ?? "")) return false;
             // "Typed it. Want me to send it?" asks too, so every sentence counts.
-            foreach (string sentence in Regex.Split((question ?? "").Trim(), @"(?<=[.!?])\s+")) if (Checking.IsMatch(sentence) || (Bare.IsMatch(sentence) && (pays || !Booking.IsMatch(sentence)))) return true;
+            foreach (string sentence in Regex.Split((question ?? "").Trim(), @"(?<=[.!?])\s+")) if (Checking.IsMatch(sentence) || (Bare.IsMatch(sentence) && !Booking.IsMatch(sentence))) return true;
             return false;
         }
 
