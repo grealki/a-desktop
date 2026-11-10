@@ -353,8 +353,8 @@ r'''                // Every preset keeps personal details out of memories by de
 capri_replace("                // Off, as in Blackwall: Get to know me's answers and what she saw are kept as they are, and her notes keep only their",
               "                // Off, when the user disables it: Get to know me's answers and what she saw are kept as they are, and her notes keep only their",
               "privacy comment")
-capri_replace('                checks.Add("PASS a form\\'s personal boxes: with Keep personal details out of her memories on, a card number, an email and a street address reach her jobs as (value hidden) while an ordinary box and an empty card box read as they are; off, as in Blackwall, she reads all three");',
-              '                checks.Add("PASS a form\\'s personal boxes: with Keep personal details out of her memories on, a card number, an email and a street address reach her jobs as (value hidden) while an ordinary box and an empty card box read as they are; when the user disables it, she reads all three");',
+capri_replace(r'''                checks.Add("PASS a form's personal boxes: with Keep personal details out of her memories on, a card number, an email and a street address reach her jobs as (value hidden) while an ordinary box and an empty card box read as they are; off, as in Blackwall, she reads all three");''',
+              r'''                checks.Add("PASS a form's personal boxes: with Keep personal details out of her memories on, a card number, an email and a street address reach her jobs as (value hidden) while an ordinary box and an empty card box read as they are; when the user disables it, she reads all three");''',
               "privacy form description")
 capri_replace("                mainframe.SlideSecurity(Security.Blackwall);","                mainframe.SlideSecurity(Security.Azure);","privacy sheet preset")
 capri_replace(r'''                if (opened == null || !opened.StartsWith("Trusted | Trusted | 1111111000001", StringComparison.Ordinal) || !flipped.StartsWith("Custom | Trusted | 1111111000000 | Your own mix", StringComparison.Ordinal) || flippedSaved != "111111100000"
