@@ -3005,9 +3005,10 @@ namespace CapriDesktop
             }
         }
 
-        internal bool RemembersShown { get { return Brain.CurrentMemoryMode != Brain.MemoryMode.Off; } }
+        internal bool RemembersShown { get { return Brain.MemoryAvailable; } }
 
-        internal void FlipRemembering() { Brain.CycleMemoryMode(); Sync(); }
+        // Legacy smoke-test helper; the visible Memory button cycles the three Azure modes directly.
+        internal void FlipRemembering() { capri.ToggleRemembering(); Sync(); }
 
         internal bool CareShown(CareKind kind) { return careToggles[(int)kind].Checked; }
 
