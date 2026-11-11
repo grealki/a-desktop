@@ -1296,7 +1296,7 @@ namespace CapriDesktop
         }
         internal static bool SetMemoryMode(MemoryMode mode)
         {
-            if (mode < MemoryMode.Off || mode > MemoryMode.Full) return false;
+            if ((int)mode < 0 || (int)mode > 2) return false;
             string path = MemoryModeFile;
             if (path == null) return false;
             try
