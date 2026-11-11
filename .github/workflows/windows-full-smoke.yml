@@ -11,7 +11,7 @@ on:
     - cron: '0 2 * * *'
 
 concurrency:
-  group: windows-full-smoke-${{ github.ref }}
+  group: windows-full-smoke-azure-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
