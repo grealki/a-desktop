@@ -394,8 +394,8 @@ capri_replace("            if (brain.Remote != null && brain.Remote.Code) return
 capri_replace("                foreach (int preset in new[] { Security.Lockdown, Security.Guarded, Security.Trusted, Security.Blackwall })",
               "                foreach (int preset in new[] { Security.Lockdown, Security.Guarded, Security.Trusted, Security.Azure })",
               "friend preset references")
-capri_replace('                    if (LookContrast(Mainframe.BlackwallInk, Neon.Field) < 4.5) throw new Exception(Neon.LookNames[look] + "\\'s Blackwall name is hard to read on its box.");',
-              '                    if (LookContrast(Mainframe.AzureInk, Neon.Field) < 4.5) throw new Exception(Neon.LookNames[look] + "\\'s Azure name is hard to read on its box.");',
+capri_replace("                    if (LookContrast(Mainframe.BlackwallInk, Neon.Field) < 4.5) throw new Exception(Neon.LookNames[look] + \"\'s Blackwall name is hard to read on its box.\");",
+              "                    if (LookContrast(Mainframe.AzureInk, Neon.Field) < 4.5) throw new Exception(Neon.LookNames[look] + \"\'s Azure name is hard to read on its box.\");",
               "Azure contrast color")
 
 capri_span("                            bool bypassWas = Computer.Bypass;",
