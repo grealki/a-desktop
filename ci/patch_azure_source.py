@@ -326,7 +326,7 @@ r'''                // Every preset keeps personal details out of memories by de
                 Security.Load(preferences.Permissions);
                 azureOff &= !Security.On(Security.Personal) && Security.Preset == Security.Custom;
                 Security.Set(Security.Personal, true);
-                azureOff &= Security.On(Security.Personal) && Security.Preset == Security.Trusted && preferences.Permissions == "1111111000";
+                azureOff &= Security.On(Security.Personal) && Security.Preset == Security.Azure && preferences.Permissions == "1111111000";
                 Security.Pick(Security.Azure);
                 bool azureRestored = Security.Preset == Security.Azure && Security.On(Security.Personal);
                 // Legacy bypass writes are ignored and cannot change the selected safe preset or privacy setting.
@@ -434,6 +434,89 @@ r'''                            Job payJob = new Job("play lofi on youtube"), se
                             SecurityChecks(checks, output);''',
 "replace unrestricted bypass tests")
 
+
+capri_span("                                    // Under Bypass she types passwords too, and they only ever show as dots.",
+           "                                finally\n                                {\n                                    Computer.Look = oldLook;",
+r'''                                    // The legacy bypass cannot authorize credential entry or purchases.
+                                    bool legacyBypassWas = Computer.Bypass;
+                                    Func<bool> secretWas = Computer.SecretFocus;
+                                    Sight loginSight = new Sight { Window = new IntPtr(7), Title = "Sign in", Program = "game" };
+                                    loginSight.Targets.Add(new Target { Number = 1, Role = "box", Name = "Password", Secret = true, Line = true, Box = new Rectangle(10, 10, 200, 20) });
+                                    string passwordResult, passwordSummary, passwordLabel, buyRun;
+                                    int buyLine = 0, buyActs = 0;
+                                    Func<string, ToolArguments, Sight, string> actWas = Computer.Act;
+                                    try
+                                    {
+                                        Computer.Bypass = true;
+                                        Computer.SecretFocus = delegate { return false; };
+                                        Computer.Look = delegate { return loginSight; };
+                                        Computer.Front = delegate { return new IntPtr(7); };
+                                        passwordResult = Computer.Do("type", new ToolArguments { Target = "1", Text = "hunter2!!" }, loginSight);
+                                        Computer.Keep("hunter2!!");
+                                        passwordSummary = Hands.Hush("my password is hunter2!!");
+                                        passwordLabel = Computer.Moving("type", Computer.Masked(new ToolArguments { Text = "hunter2!!\n" }), null, false);
+                                        Sight hatShop = new Sight { Window = new IntPtr(7), Title = "Cat hat", Program = "shop" };
+                                        hatShop.Targets.Add(new Target { Number = 1, Role = "button", Name = "Buy now", Box = new Rectangle(10, 40, 80, 20) });
+                                        Computer.Look = delegate { return hatShop; };
+                                        Computer.Act = delegate(string name, ToolArguments a, Sight sight) { buyActs++; return "Clicked it."; };
+                                        string[] buyScript = { "ask{\"text\": \"It's $4.99. Buy it?\"}", "click{\"target\": \"1\"}", "done{\"text\": \"Bought the cat hat.\"}" };
+                                        Job hatJob = new Job("buy the cat hat");
+                                        hatJob.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return buyScript[Math.Min(buyLine++, buyScript.Length - 1)]; };
+                                        buyRun = hatJob.Run();
+                                    }
+                                    finally
+                                    {
+                                        Computer.Bypass = legacyBypassWas;
+                                        Computer.SecretFocus = secretWas;
+                                        Computer.Act = actWas;
+                                    }
+                                    if (Computer.Bypass || passwordResult != "Won't type in a password box. They type passwords themselves." || passwordResult.IndexOf("hunter2", StringComparison.Ordinal) >= 0
+                                        || passwordSummary != "my password is " + Computer.Dots || passwordLabel != "Typing \"" + Computer.Dots + "\" and pressing Enter")
+                                        throw new Exception("Passwords were not kept user-entered and masked: " + passwordResult + " / " + passwordSummary + " / " + passwordLabel);
+                                    checks.Add("PASS credentials stay user-entered: the legacy bypass flag has no effect, password fields refuse automation, and password text is masked in summaries and task labels");
+                                    if (buyRun != "It's $4.99. Buy it?" || buyLine != 1 || buyActs != 0)
+                                        throw new Exception("A purchase question was suppressed or the purchase proceeded without confirmation: " + buyRun + " after " + buyLine + " steps / actions " + buyActs);
+                                    checks.Add("PASS purchase confirmation: a job's \"It's $4.99. Buy it?\" reaches the user and the Buy button is not pressed before approval");
+''',
+           "replace legacy password and purchase bypass tests")
+
+capri_span("                                    // Blackwall mode: the card is theirs to give, so she types it and asks for one in her own words.",
+           "                                    Sight detailsSight = new Sight",
+r'''                                    // Legacy bypass writes cannot authorize card entry; the user supplies card details.
+                                    bool legacyCardBypassWas = Computer.Bypass;
+                                    int cardActs = 0;
+                                    string cardResult, cardAsk;
+                                    Func<string, ToolArguments, Sight, string> cardActWas = Computer.Act;
+                                    try
+                                    {
+                                        Computer.Bypass = true;
+                                        for (int i = 0; i < 3; i++) paySight.Targets[i].Value = null;
+                                        Computer.Look = delegate { return paySight; };
+                                        Computer.Act = delegate(string name, ToolArguments a, Sight sight) { cardActs++; return "Typed it."; };
+                                        string[] cardScript = { "type{\"target\": \"1\", \"text\": \"4111 1111 1111 1111\"}", "done{\"text\": \"Put your card in.\"}" };
+                                        int cardLine = 0;
+                                        Job carding = new Job("pay for the flight with my card 4111 1111 1111 1111");
+                                        carding.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return cardScript[Math.Min(cardLine++, cardScript.Length - 1)]; };
+                                        cardResult = carding.Run();
+                                        Job cardAsking = new Job("book the cheapest flight from Sydney to Melbourne on 14 November for Alex Chen");
+                                        cardAsking.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return "ask{\"text\": \"What's your card number?\"}"; };
+                                        cardAsk = cardAsking.Run();
+                                    }
+                                    finally
+                                    {
+                                        Computer.Bypass = legacyCardBypassWas;
+                                        Computer.Act = cardActWas;
+                                    }
+                                    if (Computer.Bypass || cardActs != 0 || cardResult.IndexOf("I don't type card numbers", StringComparison.Ordinal) < 0 || cardAsk != Computer.PayYourself)
+                                        throw new Exception("Card details were not kept user-entered: " + cardActs + " / " + cardResult + " / " + cardAsk);
+                                    checks.Add("PASS card details stay user-entered: legacy bypass writes cannot type a card number, and requests for card details hand the page back to the user");
+''',
+           "replace legacy card-entry bypass test")
+
+capri_replace('                Security.Load("1111111111");\n                if (Security.On(Security.Friends) || !Security.On(Security.Secrets)) throw new Exception("Old SECURITY settings opted into friend requests or lost their old bits.");',
+              '                Security.Load("1111111111");\n                if (Security.On(Security.Friends) || Security.On(Security.Secrets) || !Security.Locked(Security.Secrets)) throw new Exception("Old SECURITY settings opted into friend requests or restored a restricted permission.");',
+              "old saved security permissions keep restricted bits locked")
+
 s = s.replace("Security.Blackwall", "Security.Azure")
 s = s.replace("mainframe.BlackwallStatus", "mainframe.AzureStatus")
 s = s.replace("Mainframe.BlackwallInk", "Mainframe.AzureInk")
@@ -447,6 +530,40 @@ replace_once("app/Computer.cs",
     "        // Legacy compatibility only: unrestricted permission bypass is permanently disabled.\n        internal static bool Bypass { get { return false; } set { Security.Jobs(false); } }",
     "        // Legacy compatibility only: unrestricted permission bypass is permanently disabled and writes are ignored.\n        internal static bool Bypass { get { return false; } set { } }",
     "make legacy bypass setter inert")
+
+
+replace_once("app/Computer.cs",
+    "        // Card number, expiry and security code boxes are theirs to fill, like password boxes, unless Type passwords and card numbers is on.",
+    "        // Card number, expiry and security code boxes are always filled by the user, like password boxes.",
+    "document fixed card-entry rule")
+replace_once("app/Computer.cs",
+    "                    // With Type passwords and card numbers on (Azure) she types them herself, so her own question about them reaches them as she wrote it.",
+    "                    // Credentials are always user-entered, so her own question about them reaches them as she wrote it.",
+    "document fixed credential rule in job ask")
+replace_once("app/Computer.cs",
+    "            // Type passwords and card numbers on (Azure): the card is theirs to give, so she types it when their job does.",
+    "            // Card details are always user-entered; refuse any attempt to type into a card field.",
+    "document fixed card-entry rule in tool execution")
+replace_once("app/Computer.cs",
+    "                    if (tool == \"ask\" && !Security.On(Security.Secrets) && Computer.AsksToSignIn(said, sight)) return End(\"asked\", Computer.SignInYourself);",
+    "                    if (tool == \"ask\" && Computer.AsksToSignIn(said, sight)) return End(\"asked\", Computer.SignInYourself);",
+    "always hand sign-in to the user")
+replace_once("app/Computer.cs",
+    "                    if (tool == \"ask\" && !Security.On(Security.Secrets) && Computer.AsksForCard(said)) return End(\"asked\", Computer.PaymentPage(sight) ? Computer.PayYourself : Computer.CardYourself);",
+    "                    if (tool == \"ask\" && Computer.AsksForCard(said)) return End(\"asked\", Computer.PaymentPage(sight) ? Computer.PayYourself : Computer.CardYourself);",
+    "always hand card requests to the user")
+replace_once("app/Computer.cs",
+    "                    if (!Security.On(Security.Secrets) && Computer.PaymentPage(sight) && !Paid())",
+    "                    if (Computer.PaymentPage(sight) && !Paid())",
+    "always hand payment pages to the user")
+replace_once("app/Computer.cs",
+    "            else if (tool == \"type\" && !Security.On(Security.Secrets) && Computer.CardBox(sight == null ? null : sight.Find(args.Target)))",
+    "            else if (tool == \"type\" && Computer.CardBox(sight == null ? null : sight.Find(args.Target)))",
+    "always refuse card-field typing")
+replace_once("app/Computer.cs",
+    "                if (danger == \"buy\" && !Security.On(Security.Secrets) && sight != null && sight.Targets.Exists(found => Computer.CardBox(found) && string.IsNullOrEmpty(found.Value))) return End(\"asked\", Computer.PayYourself);",
+    "                if (danger == \"buy\" && sight != null && sight.Targets.Exists(found => Computer.CardBox(found) && string.IsNullOrEmpty(found.Value))) return End(\"asked\", Computer.PayYourself);",
+    "always require user card entry at payment page")
 
 replace_once("app/Brain.cs",
 r'''        internal readonly string Host;
@@ -490,6 +607,11 @@ brain = Path("app/Brain.cs").read_text(encoding="utf-8")
 for obsolete in ["remote.Code", "CurrentCode", "CodeNote", "capri-code", "capri-reactions", "Brain.Codes"]:
     if obsolete in brain:
         raise RuntimeError(f"Obsolete access-code implementation remains in app/Brain.cs: {obsolete}")
+
+
+computer = Path("app/Computer.cs").read_text(encoding="utf-8")
+if "Security.On(Security.Secrets)" in computer:
+    raise RuntimeError("A credential safety gate still depends on the removed Secrets toggle in app/Computer.cs")
 
 print("Azure source patch applied.")
 print("Changed files: app/Capri.cs, app/Computer.cs, app/Brain.cs")
