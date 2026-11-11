@@ -1034,6 +1034,8 @@ namespace CapriDesktop
         internal static int Budget { get { return Budgets[Math.Max(0, Math.Min(2, Wordiness))]; } }
 
         internal static string MemoryPath;
+        // Serializes edits to the user's persistent notes.
+        private static readonly object noting = new object();
 
         internal static WrittenNote OpenNote(bool memories)
         {
