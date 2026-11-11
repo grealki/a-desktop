@@ -786,11 +786,11 @@ namespace CapriDesktop
         internal const string CantRead = "Can't read personality.md";
         internal const string ResetKept = "Back to my default self. Yours is saved as personality.backup.md.";
         internal const string ResetDone = "Back to my default self.";
-        // Her default's stamp. Change her default and the smoke test fails until this is the new stamp and the old one is in Retired.
-        internal const string DefaultStamp = "5d97387c124dad49";
-        // Stamps of her old defaults: an untouched copy of one in personality.md is her default. 63e0148935e35287 is 0.7.4's, and
-        // 2b50818492a85006 is 0.7.5's, with her safety lines in it.
-        internal static readonly List<string> Retired = new List<string> { "63e0148935e35287", "2b50818492a85006" };
+        // Azure's default stamp. Change her default and the smoke test fails until this is the new stamp and the old one is in Retired.
+        internal const string DefaultStamp = "52c4ca26910c2c4b";
+        // Stamps of older defaults: 63e0148935e35287 is 0.7.4, 2b50818492a85006 is 0.7.5, and
+        // 5d97387c124dad49 is the pre-Azure default. Untouched copies are replaced with Azure's default.
+        internal static readonly List<string> Retired = new List<string> { "63e0148935e35287", "2b50818492a85006", "5d97387c124dad49" };
 
         internal static string PersonalityBackup { get { string path = PersonalityPath; return path == null ? null : Path.Combine(Path.GetDirectoryName(path), "personality.backup.md"); } }
 
@@ -871,8 +871,8 @@ namespace CapriDesktop
                 return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(text)), 0, 8).Replace("-", "").ToLowerInvariant();
         }
 
-        // Her ElevenLabs agent keeps a copy of her prompt, so their personality.md tunes it again whenever it changes. Hers stamps
-        // as "", so updating Capri alone never re-tunes it.
+        // Azure's ElevenLabs agent keeps a copy of her prompt, so personality.md tunes it again whenever it changes. Her default stamps
+        // as "", so updating Azure alone never re-tunes it.
         internal static string PersonalityStamp { get { string text = Personality; return text == DefaultPersonality ? "" : Stamp(text); } }
 
         // On Edit: her default goes in when personality.md is missing or empty, or an untouched old default. It never overwrites an edit.
