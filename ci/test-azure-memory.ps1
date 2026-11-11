@@ -68,7 +68,7 @@ try {
     & $assertMode 'Off' $false $false
     $blocked = [string]$note.Invoke($null, [object[]]@('likes puzzle games'))
     if (-not $blocked.StartsWith('Memory is off.', [StringComparison]::Ordinal)) { throw "Off mode accepted a note: $blocked" }
-    $transcribe.Invoke($null, [object[]]@('You', 'this should not be logged')) | Out-Null
+    $transcribe.Invoke($null, [object[]]@('You', 'this should not be logged', $true)) | Out-Null
     if (Test-Path -LiteralPath (Join-Path $testRoot 'transcripts')) { throw 'Off mode created a transcript folder.' }
     if ([string]$memories.Invoke($null, @()) -ne '' -or [string]$remembered.Invoke($null, @()) -ne '') { throw 'Off mode exposed saved memories.' }
 
@@ -82,7 +82,7 @@ try {
 
     & $set $full
     & $assertMode 'Full' $true $true
-    $transcribe.Invoke($null, [object[]]@('You', 'full mode transcript check')) | Out-Null
+    $transcribe.Invoke($null, [object[]]@('You', 'full mode transcript check', $true)) | Out-Null
     $day = Get-ChildItem -LiteralPath (Join-Path $testRoot 'transcripts') -Filter '*.md' | Select-Object -First 1
     if ($null -eq $day) { throw 'Full mode did not create a local transcript.' }
     $dayText = [IO.File]::ReadAllText($day.FullName)
