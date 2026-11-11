@@ -43,9 +43,12 @@ Last updated: 2026-11-11
 
 ## Next tasks
 
-1. Validate the corrected Windows source with a fresh CI run on a commit containing `27bb7ac`.
+1. Validate the corrected Windows source with a fresh CI run on the current `azure-dev` head (which contains `27bb7ac`).
 2. Inspect Windows build and smoke-test logs; fix only verified regressions.
 3. Audit all Capri-owned endpoint/access-code references and preserve user-selected providers/local AI.
 4. Audit the actual Windows security-warning handling paths, not just prompts; remove any automatic override if present.
 5. Keep the optional Gaming Co-Pilot Mode as a separate future Azure feature: cooperative advice plus user-approved control handoff. It is planned, not implemented.
 6. Update this file after each meaningful code change and CI result so a new chat can resume accurately.
+
+
+A follow-up branch commit was used to ensure CI runs against the corrected source after the temporary patch runner was removed.
