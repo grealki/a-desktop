@@ -6,8 +6,8 @@ Last updated: 2026-11-11
 
 - Repository: https://github.com/grealki/a-desktop
 - Active branch: `azure-dev` only.
-- The upstream repository must never be modified.
-- Do not merge into `main`, publish releases, or distribute builds.
+- Never modify the upstream repository.
+- Never merge into `main`, publish a release, or distribute a build.
 - Inspect before changing; preserve unrelated functionality.
 - Approved cleanup scope:
   1. Permanently disable unrestricted Blackwall permission bypass.
@@ -16,39 +16,42 @@ Last updated: 2026-11-11
 
 ## Current build investigation
 
-- Windows build uses `ci/build-windows.ps1`, which compiles `app/Capri.cs` directly. This is the canonical Windows source file, not generated output.
+- Windows CI compiles `app/Capri.cs` directly through `ci/build-windows.ps1`; this is the canonical Windows source, not generated output.
 - Linux and macOS CI build `cross/Capri.Cross.csproj` separately.
-- Latest completed CI before the current fix (2026-11-11, commit `a49a0a401d9b26202197285e629ea0007fbd750d`):
-  - Windows compilation failed with `CS1513: } expected` at `app/Capri.cs(47787,10)`.
+- Baseline CI on 2026-11-11 at commit `a49a0a401d9b26202197285e629ea0007fbd750d`:
+  - Windows failed with `CS1513: } expected` at `app/Capri.cs(47787,10)`.
   - Linux and macOS build/smoke jobs passed.
-  - The Windows package-marker step failed secondarily because the failed build did not produce the installer.
-- Root cause found in `StartSmokeTest`: the `else if (step == 1)` block was closed, but the surrounding `try` block was not closed before its `catch`.
-- A single closing brace was inserted immediately before that `catch`. The source correction was committed to `azure-dev` as `27bb7ac601b51217eba5cc8d787d5fe252180384`.
-- **Validation is pending.** The CI run created for the preceding temporary-script commit may still test the pre-fix source. A fresh CI run must validate the source-fix commit or a later commit containing it.
+  - Windows package-marker failure was secondary because the build did not produce the installer.
+- The later diagnostic run exposed the underlying Windows source issues:
+  - A purchase-confirmation smoke-test `try` block lacked its closing brace before `finally` near line 39327.
+  - Two stale `Cloud.Code` references remained in `app/Capri.cs` even though `Cloud.Code` had been removed with legacy access-code support (previously near lines 10506 and 13867).
+  - An intermediate repair added a brace in the wrong location before the `StartSmokeTest` catch; that incorrect brace has been removed.
+- Corrective source changes are committed to `azure-dev` in commit `677f73d482ed3d24145d6d2a5b72cc13076a95be`:
+  - Closed the purchase-confirmation test block before its `finally`.
+  - Removed the misplaced brace from `StartSmokeTest`.
+  - Removed the two obsolete `remote.Code` branches; they only supported the removed legacy access-code system.
+- Static verification after that commit: braces are balanced and no `brain.Remote.Code` / `remote.Code` references remain.
+- **A fresh CI run against the corrected source is still required.** The most recent completed Windows run tested the intermediate source and failed; do not describe the corrected build as passing until the new Windows build and smoke test complete.
 
 ## Verified safety implementation observed so far
 
 - `app/Computer.cs`: legacy `Computer.Bypass` is compatibility-only; getter always returns `false` and setter ignores writes.
-- `app/Capri.cs`: legacy saved bypass values are migrated to a safe Azure/Trusted permissions preset and the old flag is cleared.
+- `app/Capri.cs`: legacy saved bypass values migrate to a safe Azure/Trusted permissions preset and the old flag is cleared.
 - Security smoke tests assert that payments, unrequested actions, and credential entry remain protected, including under the Azure preset.
 - `app/Computer.cs` prompts instruct the agent to stop on Windows/antivirus security warnings, not dismiss them or run the file.
-- `app/Brain.cs`: legacy Capri access-code strings are rejected; legitimate provider kinds and local brains remain supported.
-- The broader endpoint and warning-override audit is not yet complete. Do not claim those audits are finished.
+- `app/Brain.cs`: legacy Capri access-code strings are rejected; legitimate user-selected provider kinds and local brains remain supported.
+- The broader Capri-owned endpoint and actual Windows warning-override audit is not complete. Do not claim either audit is finished.
 
 ## Temporary patch mechanism
 
-- The temporary workflow `.github/workflows/temporary-azure-source-patch.yml` had `contents: write` permission and pushed source edits automatically.
-- Its original 64 KB patch script was stale and failed because its expected legacy source snippet no longer existed.
-- It was used once with a narrowed, exact-match brace correction. Remove the temporary workflow and its script now that the source edit is committed; do not keep an automatic source-rewriting workflow.
+- The one-off workflow `.github/workflows/temporary-azure-source-patch.yml` and script `ci/patch_azure_source.py` have been removed after applying the focused source correction.
+- Do not reintroduce automatic source-rewriting workflows or broad write-permission automation.
 
 ## Next tasks
 
-1. Validate the corrected Windows source with a fresh CI run on the current `azure-dev` head (which contains `27bb7ac`).
+1. Validate the corrected Windows source with a fresh CI run on the latest `azure-dev` head.
 2. Inspect Windows build and smoke-test logs; fix only verified regressions.
-3. Audit all Capri-owned endpoint/access-code references and preserve user-selected providers/local AI.
-4. Audit the actual Windows security-warning handling paths, not just prompts; remove any automatic override if present.
-5. Keep the optional Gaming Co-Pilot Mode as a separate future Azure feature: cooperative advice plus user-approved control handoff. It is planned, not implemented.
+3. Audit Capri-owned endpoint/access-code references and preserve legitimate user-selected providers and local AI.
+4. Audit actual Windows security-warning handling paths, not just prompts; remove any automatic override if present.
+5. Keep Gaming Co-Pilot Mode as a separate future Azure feature: cooperative advice plus user-approved control handoff. It is planned, not implemented.
 6. Update this file after each meaningful code change and CI result so a new chat can resume accurately.
-
-
-A follow-up branch commit was used to ensure CI runs against the corrected source after the temporary patch runner was removed.
