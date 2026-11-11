@@ -1076,7 +1076,7 @@ namespace CapriDesktop
         internal static string Remembered()
         {
             MemoryMode mode = CurrentMemoryMode;
-            return mode == MemoryMode.Off ? "" : WrittenDown() + (mode == MemoryMode.Full ? Seen() : "");
+            return !MemoryAvailable ? "" : WrittenDown() + (Keeping && mode == MemoryMode.Full ? Seen() : "");
         }
 
         // What she's written down. It only changes when she writes something, so a chat's cached prompt runs up to here.
@@ -1118,7 +1118,7 @@ namespace CapriDesktop
 
         internal static string Note(string fact)
         {
-            if (CurrentMemoryMode == MemoryMode.Off) return "Memory is off. Turn on Controlled or Full mode before asking me to remember something.";
+            if (!MemoryAvailable) return "Memory is off. Turn on Controlled or Full mode before asking me to remember something.";
             string text = Regex.Replace((fact ?? "").Trim(), @"\s+", " ").Trim(' ', '-', '.', ',', '"');
             if (text.Length == 0) return "What should I remember, choom?";
             if (Discreet ? Revealing(text) : Personal.IsMatch(text)) return Private;
@@ -1176,7 +1176,7 @@ namespace CapriDesktop
         // you writes these. Null once it's saved, otherwise what went wrong.
         internal static string Jot(string label, string value)
         {
-            if (CurrentMemoryMode == MemoryMode.Off) return "Memory is off. Turn on Controlled or Full mode before saving a detail.";
+            if (!MemoryAvailable) return "Memory is off. Turn on Controlled or Full mode before saving a detail.";
             string text = Regex.Replace((value ?? "").Trim(), @"\s+", " ").Trim(' ', '-', ',', '"');
             if (text.Length > 200) text = text.Substring(0, 200).TrimEnd();
             if (Discreet && (SensitiveLabel.IsMatch(label ?? "") || Revealing(text))) return Private;
@@ -1211,7 +1211,7 @@ namespace CapriDesktop
 
         internal void Saw(string what, string said, bool asked = false, bool watched = false)
         {
-            if (CurrentMemoryMode != MemoryMode.Full) return;
+            if (!Keeping) return;
             string text = Regex.Replace(what ?? "", @"\s+", " ").Trim();
             if (text.Length == 0) return;
             if (Discreet && Revealing(text)) text = RedactedDetail;
@@ -1228,7 +1228,7 @@ namespace CapriDesktop
 
         internal static string Seen()
         {
-            if (CurrentMemoryMode != MemoryMode.Full) return "";
+            if (!Keeping) return "";
             List<Sighting> all;
             lock (seeing) all = new List<Sighting>(sightings);
             DateTime now = DateTime.Now;
@@ -1253,6 +1253,8 @@ namespace CapriDesktop
         internal enum MemoryMode { Off = 0, Controlled = 1, Full = 2 }
         private static readonly object memoryModeLock = new object();
         private static int memoryModeValue = -1;
+        // Legacy smoke-test callers can temporarily suppress memory without changing the user's saved mode.
+        private static int keepingOverride = -1;
         private static string MemoryModeFile
         {
             get
@@ -1306,7 +1308,7 @@ namespace CapriDesktop
             }
             catch (IOException) { return false; }
             catch (UnauthorizedAccessException) { return false; }
-            lock (memoryModeLock) memoryModeValue = (int)mode;
+            lock (memoryModeLock) { memoryModeValue = (int)mode; keepingOverride = -1; }
             if (mode != MemoryMode.Full) Unsee();
             ClearQueuedChats();
             if (mode == MemoryMode.Full && Keeper != null) Keeper.FoldSoon();
@@ -1331,10 +1333,11 @@ namespace CapriDesktop
         internal static string TranscriptPath;
         internal static string MemoriesPath;
         // Compatibility with old callers. The persisted legacy bool is intentionally ignored.
+        internal static bool MemoryAvailable { get { return keepingOverride != 0 && CurrentMemoryMode != MemoryMode.Off; } }
         internal static bool Keeping
         {
-            get { return CurrentMemoryMode == MemoryMode.Full; }
-            set { LoadMemoryMode(); }
+            get { return keepingOverride == 0 ? false : CurrentMemoryMode == MemoryMode.Full; }
+            set { keepingOverride = value ? -1 : 0; }
         }
         internal static volatile Brain Keeper;
         // Mac and Linux turn this off: their screenshots show her and her bubble, so a glance can take her for part of their
@@ -1395,7 +1398,7 @@ namespace CapriDesktop
 
         internal static string Memories()
         {
-            string body = CurrentMemoryMode == MemoryMode.Off ? "" : MemoriesBody();
+            string body = MemoryAvailable ? MemoriesBody() : "";
             return body.Length == 0 ? "" : "\nYour memories of past chats with them, from memories.md (Azure wrote it only in Full mode; they can read and edit it). Use them when they fit, and don't recite them:\n" + DataBlock("memory_data", "memories.md", "user-editable", body);
         }
 
