@@ -929,7 +929,8 @@ namespace CapriDesktop
             startup = Switch("Start with Windows", c, 680, delegate { if (!syncing) capri.ToggleStartup(); });
             discord = Switch("Show on Discord", c, 708, delegate { if (!syncing) capri.ToggleDiscord(); });
             cursor = Switch("Use her cursor", c, 736, delegate { if (!syncing) capri.ToggleCursor(); });
-            remembering = Switch("Memory: Off", c, 764, delegate { if (!syncing) { Brain.CycleMemoryMode(); Sync(); } });
+            remembering = Switch("Memory: Off", c, 764, null);
+            remembering.Click += delegate { if (!syncing) { Brain.CycleMemoryMode(); Sync(); } };
             remembering.AccessibleName = "Azure memory mode. Click to cycle between Off, Controlled and Full. Controlled saves only details explicitly asked to be remembered; Full also keeps local chat transcripts and builds memories automatically.";
             // SECURITY took Azure mode's place (Lachy, 29 Oct): its button opens her SECURITY window, and the line under it
             // says what the preset does. Azure mode is its Azure preset now.
