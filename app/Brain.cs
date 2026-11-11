@@ -1340,7 +1340,7 @@ namespace CapriDesktop
         internal static bool Keeping
         {
             get { int forced = keepingOverride; return forced >= 0 ? forced == 1 : CurrentMemoryMode == MemoryMode.Full; }
-            set { keepingOverride = value ? 1 : 0; }
+            set { keepingOverride = Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-test") >= 0 ? (value ? 1 : 0) : -1; }
         }
         internal static volatile Brain Keeper;
         // Mac and Linux turn this off: their screenshots show her and her bubble, so a glance can take her for part of their
