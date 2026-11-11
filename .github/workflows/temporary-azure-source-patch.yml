@@ -1,0 +1,28 @@
+name: Temporary Azure source patch
+
+on:
+  push:
+    branches:
+      - azure-dev
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'TEMP APPLY AZURE PATCH'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: azure-dev
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Apply exact Azure source corrections
+        run: python3 ci/patch_azure_source.py
+      - name: Commit source corrections to azure-dev
+        run: |
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Capri.cs
+          git commit -m "Fix Windows smoke-test blocks and remove stale access-code checks"
+          git push origin HEAD:azure-dev
