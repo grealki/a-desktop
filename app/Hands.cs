@@ -128,7 +128,7 @@ namespace CapriDesktop
             "On: she clicks and types in your apps. Off: she asks first.",
             "On: she sends it without checking again. Off: she asks first.",
             "Always: she asks before payments, purchases or bookings.",
-            "Always: she asks before actions that weren't included in your request.",
+            "Always: she asks before extra actions.",
             "Always: you enter passwords and card details yourself.",
             "On: she listens on this PC for her name. Off: she doesn't.",
             "Call mode only. Your mic or typing must confirm each ask.",
