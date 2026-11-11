@@ -201,7 +201,7 @@ namespace CapriDesktop
             if (changed != null) changed();
         }
 
-        // Compatibility for older callers: the former bypass now selects the safe Azure preset.
+        // Compatibility for older callers: this selector now chooses only the safe Azure or Trusted preset.
         internal static void Jobs(bool azure) { Pick(azure ? Azure : Trusted); }
 
         // The preset their toggles match, or Custom. "Hey Capri" only counts where there's a wake word.
@@ -265,9 +265,9 @@ namespace CapriDesktop
                 if (saved.Length > Wake && saved[Wake] == '1') bits |= 1 << Friends;
                 if (saved.Length > Wake + 1 ? saved[Wake + 1] == '1' : Kept(bits)) bits |= 1 << Personal;
             }
-            bool legacyBlackwall = (bits & 0x3FF) == 0x3FF;
-            bits &= ~RestrictedMask; // Migrate legacy bypass saves without restoring their permission bypass.
-            if (legacyBlackwall) bits |= 1 << Personal;
+            bool legacyAllEnabled = (bits & 0x3FF) == 0x3FF;
+            bits &= ~RestrictedMask; // Older all-enabled saves may be legacy Blackwall settings; never restore restricted permissions.
+            if (legacyAllEnabled) bits |= 1 << Personal;
             lock (gate) mask = bits | (wakeOn ? 1 << Wake : 0);
         }
 
