@@ -30,7 +30,7 @@ if ($Store) { Write-Output "Built $app for the Microsoft Store"; return }
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 Write-Output "Built $app and $setup"
 $memoryTest = Join-Path $PSScriptRoot 'test-azure-memory.ps1'
-$windowsPowerShell = Join-Path $env:WINDIR 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+$windowsPowerShell = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
 & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $memoryTest -Executable $app
 if ($LASTEXITCODE -ne 0) { throw 'Azure memory mode tests failed.' }
 if (-not $SmokeTest) { return }
