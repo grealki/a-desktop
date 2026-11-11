@@ -10503,7 +10503,6 @@ namespace CapriDesktop
 
         internal void ChooseModel(string name, bool keep = true)
         {
-            if (brain.Remote != null && brain.Remote.Code && name != Brain.Fastest) return;
             if (name == brain.Model) return;
             if (keep && AfterLine(delegate { ChooseModel(name, keep); })) return;
             brain.Cancel();
@@ -13864,7 +13863,6 @@ namespace CapriDesktop
                     {
                         if (stuck && ticket == asking && Hops(remote, switches)) { Hear(text, shown, prompt, switches + 1, callInput, callHeard); return; }
                         if (problem != null && ticket == asking) mainframe.ShowProblem(Brain.Brief(problem) ?? (problem.Length > 60 ? problem.Substring(0, 57) + "..." : problem));
-                        else if (ticket == asking && remote != null && remote.Code && brain.Remote == remote) mainframe.ShowCloud(remote, cloudModels);
                         if (ticket == asking && followAllowed && state == TalkState.Talking && FollowUpAllowed()) followUp.Hold(followLine, ticket, followInput, followMic);
                         said = CallLine(ticket, said);
                         if (CallHands(ticket)) callSession.Keep(callUserVersion, callRecord, said, Brain.Recall, delegate { return ticket == asking; });
@@ -39325,6 +39323,7 @@ namespace CapriDesktop
                                     if (buyRun != "It's $4.99. Buy it?" || buyLine != 1 || buyActs != 0)
                                         throw new Exception("A purchase question was suppressed or the purchase proceeded without confirmation: " + buyRun + " after " + buyLine + " steps / actions " + buyActs);
                                     checks.Add("PASS purchase confirmation: a job's \"It's $4.99. Buy it?\" reaches the user and the Buy button is not pressed before approval");
+                                }
                                 finally
                                 {
                                     Computer.Look = oldLook;
@@ -47774,7 +47773,6 @@ namespace CapriDesktop
                         SmokeRun.StepDone(step, true, checks);
                         if (step == 22) SmokeRun.Complete(checks);
                         step++;
-                    }
                     }
                     catch (Exception error)
                     {
