@@ -47775,6 +47775,7 @@ namespace CapriDesktop
                         if (step == 22) SmokeRun.Complete(checks);
                         step++;
                     }
+                    }
                     catch (Exception error)
                     {
                         TestFailed = true;
