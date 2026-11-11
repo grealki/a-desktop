@@ -21,7 +21,7 @@ jobs:
   windows-full-smoke:
     runs-on: windows-2025
     timeout-minutes: 40
-    # Covers Azure identity, the file editor, all three memory modes and the 30-minute runtime soak.
+    # Covers Azure identity, the file editor, the current personality stamp, all three memory modes and the 30-minute runtime soak.
     steps:
       - uses: actions/checkout@v5
       - name: Prepare full-size desktop
