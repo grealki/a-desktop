@@ -524,7 +524,34 @@ if any(x in s for x in ["Security.Blackwall", "BlackwallStatus", "BlackwallInk",
     raise RuntimeError("Obsolete security or access-code symbols remain in app/Capri.cs")
 if s.count("CAPRI-") != 1:
     raise RuntimeError("Expected exactly one inert legacy access-code regression-test literal")
+# Clean up stale Blackwall-era descriptions and a duplicate SECURITY smoke invocation.
+capri_replace("        [DataMember] public bool Bypass;\n        // Her SECURITY window's toggles 1 to 10 as 1s and 0s, like \"1111111000\" for Trusted; \"Hey Capri\" is HeyCapri. Missing in\n        // settings from before it, so Blackwall mode moves to the Blackwall preset and everyone else gets Trusted.\n        [DataMember] public string Permissions;\n        // Listen for \"Hey Capri\" is off out of the box (Lachy, 29 Oct). It's a toggle in her Security window, and the Blackwall preset turns it on.",
+              "        [DataMember] public bool Bypass; // Legacy serialized flag; Migrate clears it and it never grants permissions.\n        // Her SECURITY window's toggles 1 to 10 as 1s and 0s, like \"1111111000\" for Trusted; \"Hey Capri\" is HeyCapri. Missing in\n        // older settings, a legacy bypass save migrates to safe Azure permissions; other older saves default to Trusted.\n        [DataMember] public string Permissions;\n        // Listen for \"Hey Capri\" is off out of the box (Lachy, 29 Oct). It's a toggle in her Security window, and the Azure preset turns it on.",
+              "legacy preference comments");
+capri_replace("        // The old Blackwall bypass flag is migration-only; legacy settings now select the safe Azure preset.",
+              "        // The legacy bypass flag is migration-only; older bypass saves now select the safe Azure preset.",
+              "legacy bypass migration comment");
+capri_replace("                // screen_data in Blackwall too.", "                // screen_data under the Azure preset too.", "memory test comment");
+capri_replace("Blackwall's name included", "Azure's name included", "colour test label");
+if (s.split("SECURITY's Blackwall preset turns it on").length - 1 !== 2) throw new Error("Expected two obsolete wake-word comments.");
+s = s.replace("SECURITY's Blackwall preset turns it on", "SECURITY's Azure preset turns it on");
+capri_replace("{ \"what's Blackwall\", \"Security\" }", "{ \"what's the Azure preset\", \"Security\" }", "self knowledge query");
+capri_replace("// Nothing in code screens what they say or rewrites what she says: her brain follows her safety lines, Blackwall on or off.",
+              "// Nothing in code screens what they say or rewrites what she says: her brain follows the same safety lines under every SECURITY preset.",
+              "code filter comment");
+capri_replace("PASS no code filters: with Blackwall off too, everything they say reaches her brain and her reply comes out as her brain wrote it, since her safety lines are part of her prompt; a typed password still shows as dots in her bubble",
+              "PASS no code filters: under Trusted too, everything they say reaches her brain and her reply comes out as her brain wrote it, since her safety lines are part of her prompt; a typed password still shows as dots in her bubble",
+              "code filter label");
+capri_replace("SECURITY's Blackwall preset does", "SECURITY's Azure preset does", "wake test label");
+capri_replace("SecurityChecks(checks, output);                            SecurityChecks(checks, output);",
+              "SecurityChecks(checks, output);", "remove duplicate SECURITY smoke invocation");
+
 p.write_text(s, encoding="utf-8")
+
+replace_once("app/Computer.cs",
+    "        // Her hands' prompt follows SECURITY's toggles 8 to 10 like her ask tool: Type passwords and card numbers lets her type\n        // them, Pay, buy and book drops asking before paying, and with Things your request didn't mention on too she never\n        // stops to ask. Trusted gets the prompt as written and Azure gets Azure mode's.",
+    "        // The hand prompts stay fixed. Job checks enforce ordinary-action permissions, while purchases, unrequested actions\n        // and credential entry remain protected in every preset.",
+    "update fixed hand prompt comment")
 
 replace_once("app/Computer.cs",
     "        // Legacy compatibility only: unrestricted permission bypass is permanently disabled.\n        internal static bool Bypass { get { return false; } set { Security.Jobs(false); } }",
