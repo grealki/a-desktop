@@ -1052,8 +1052,7 @@ namespace CapriDesktop
 
         internal static readonly string[] HalloweenLines = { "Happy Halloween, choom!", "Happy Halloween, choom. Trick or treat?", "Boo! Happy Halloween, choom." };
 
-        internal const string NotesHead = "# What Azure remembers\\n> These are user-controlled notes. Review, edit or delete anything here.\\n\\n"
-        private static readonly object noting = new object();
+        internal const string NotesHead = "# What Azure remembers\n> These are user-controlled notes. Review, edit or delete anything here.\n\n";
         // Only secrets and things that find them in real life stay out of me.md: Lachy wants every other memory to save.
         private static readonly Regex Personal = new Regex(@"\b(passwords?|passcodes?|pin (code|number)|log ?in details|credit card|card number|bank (account|details|number)|account number|sort code|routing number|social security|passport|(home|street|postal|email|e-mail) address|(my|their|his|her) address|postcode|post code|zip code|(phone|mobile|cell) number|surname|last name|full name|real name|date of birth|(i|they) live (in|at|on)|(my|their|his|her) school(?: is|'s| is called| called)|school (is )?called)\b|@\w+\.\w+|\d[\d\s-]{6,}\d|\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b", RegexOptions.IgnoreCase);
         // A Get to know me label that is a personal detail, like "Email", "Card number" or "Home address". The detail has to end
