@@ -33,6 +33,18 @@ Last updated: 2026-11-11
 - Static verification after that commit: braces are balanced and no `brain.Remote.Code` / `remote.Code` references remain.
 - **A fresh CI run against the corrected source is still required.** The most recent completed Windows run tested the intermediate source and failed; do not describe the corrected build as passing until the new Windows build and smoke test complete.
 
+## Latest Windows CI and focused follow-up (2026-11-11)
+
+- The corrected Windows source compiled successfully in CI, and the separate Windows silent install/uninstall job passed.
+- The Windows runtime smoke test reached 889 PASS, 45 LIMIT, 4 FAIL, and 12 SKIP. The four failures were:
+  - OpenRouter provider routing/settings assertion in `SmokeCloudBrains` (also failed in the earlier run before the recent access-code cleanup).
+  - A stale `SelfKnow` label that still named the old `Things your request didn't mention` setting.
+  - A SECURITY preset/privacy assertion in `SmokePrivacy` that still needs investigation.
+  - SECURITY window layout overflow on the long fixed-confirmation description (also failed in the earlier run, on the payment row).
+- Focused fixes committed on `azure-dev`: shortened the fixed extra-action confirmation description and updated the SelfKnow help topic to match the current fixed safeguard label and behavior.
+- Those two focused fixes have not yet been validated by a completed Windows CI run. Do not call the Windows smoke suite passing until that run completes.
+- The OpenRouter assertion predates the latest changes and is not yet diagnosed. Preserve provider-specific endpoints, keys, and settings; do not change routing without a reproducible root cause.
+
 ## Verified safety implementation observed so far
 
 - `app/Computer.cs`: legacy `Computer.Bypass` is compatibility-only; getter always returns `false` and setter ignores writes.
