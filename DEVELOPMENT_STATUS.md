@@ -45,6 +45,15 @@ Last updated: 2026-11-11
 - Those two focused fixes have not yet been validated by a completed Windows CI run. Do not call the Windows smoke suite passing until that run completes.
 - The OpenRouter assertion predates the latest changes and is not yet diagnosed. Preserve provider-specific endpoints, keys, and settings; do not change routing without a reproducible root cause.
 
+## Windows warning and provider audit follow-up (2026-11-11)
+
+- Targeted Windows-source search found no SmartScreen/“Run anyway” automation, Mark-of-the-Web removal, Zone.Identifier handling, Unblock-File call, or Defender real-time protection override in the inspected app sources.
+- `app/Computer.cs` explicitly instructs the computer agent to stop when Windows or antivirus displays a security warning, not dismiss it or run the file.
+- `app/Capri.cs` uses `WinVerifyTrust` with UI disabled to verify downloaded update signatures; untrusted signatures are rejected. This is verification, not a Windows warning bypass.
+- `app/Setup.cs` has one `runas` elevation path, limited to closing an already-elevated Capri process during install/uninstall; declining the UAC prompt leaves the process running and setup reports that it could not close it. This is not a SmartScreen override and should not be removed as part of the approved scope without a separate reason.
+- The earlier Windows smoke log's privacy failure predates commit `93e3ce3ec0`, which changed preset matching to always count the personal-data safeguard bit. The latest Windows run on `d32a16c0bde6cc8b15a6832462a34d0b79524ca0` is the validation for that fix.
+- OpenRouter smoke-test mismatch identified: production `app/Brain.cs` correctly sends `X-Title: Azure`, while the large `app/Capri.cs` smoke assertion still expects `X-Title: Capri`. Do not revert the production attribution to Capri; update the stale assertion and its PASS description in a controlled source-edit workflow. No production provider routing change is justified by this test failure.
+
 ## Verified safety implementation observed so far
 
 - `app/Computer.cs`: legacy `Computer.Bypass` is compatibility-only; getter always returns `false` and setter ignores writes.
