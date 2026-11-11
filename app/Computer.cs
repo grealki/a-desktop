@@ -135,8 +135,8 @@ namespace CapriDesktop
         internal const string OffScreen = "That isn't on the screenshot";
         internal const string NoClick = "Couldn't see where to click, so I stopped.";
         internal const string Exact = "\nTheir exact words: ";
-        // Legacy compatibility only: unrestricted permission bypass is permanently disabled.
-        internal static bool Bypass { get { return false; } set { Security.Jobs(false); } }
+        // Legacy compatibility only: unrestricted permission bypass is permanently disabled and writes are ignored.
+        internal static bool Bypass { get { return false; } set { } }
 
         // Credentials and payment details are always entered by the user.
         private static bool Typist { get { return false; } }
@@ -532,7 +532,7 @@ namespace CapriDesktop
         internal const string CardYourself = "You'll need to put in your card details yourself. I don't type card numbers.";
         internal const string NoCard = "That didn't work: they put in card details themselves. Call ask and say the page is ready for their card.";
         internal const string NoCardShown = "Your card details are yours to put in";
-        // Card number, expiry and security code boxes are theirs to fill, like password boxes, unless Type passwords and card numbers is on.
+        // Card number, expiry and security code boxes are always filled by the user, like password boxes.
         private static readonly Regex CardField = new Regex(@"\b(card ?(number|no)|credit card|debit card|cvv2?|cvc2?|security code|expiry|expiration|exp\.? date|valid (thru|until))\b", RegexOptions.IgnoreCase);
 
         internal static bool CardBox(Target target) { return target != null && target.Line && CardField.IsMatch(target.Name ?? ""); }
@@ -2697,14 +2697,14 @@ namespace CapriDesktop
                         nudge = "\nYou asked " + Voice.Quote(said) + (skipped == 1 ? " but their job already says what to do, so don't ask: do the next step now." : " again. They already said yes, so don't ask or stop: do the next step now with a tool.") + " Capri stops you herself before any step that needs their OK.";
                         continue;
                     }
-                    // With Type passwords and card numbers on (Azure) she types them herself, so her own question about them reaches them as she wrote it.
-                    if (tool == "ask" && !Security.On(Security.Secrets) && Computer.AsksToSignIn(said, sight)) return End("asked", Computer.SignInYourself);
-                    if (tool == "ask" && !Security.On(Security.Secrets) && Computer.AsksForCard(said)) return End("asked", Computer.PaymentPage(sight) ? Computer.PayYourself : Computer.CardYourself);
+                    // Credentials are always user-entered, so her own question about them reaches them as she wrote it.
+                    if (tool == "ask" && Computer.AsksToSignIn(said, sight)) return End("asked", Computer.SignInYourself);
+                    if (tool == "ask" && Computer.AsksForCard(said)) return End("asked", Computer.PaymentPage(sight) ? Computer.PayYourself : Computer.CardYourself);
                     if (tool == "ask") return End("asked", said);
                     // After a made-up detail was refused, a done over the still-empty form becomes the question.
                     if (guesses > 0 && sight != null && sight.Targets.Exists(found => Computer.DetailsForm(sight, found, Task) && string.IsNullOrEmpty(found.Value))) return End("asked", Computer.NeedsDetails(sight));
                     // A job that stops at a card form hands it to them, and a claim that it was paid never reaches them.
-                    if (!Security.On(Security.Secrets) && Computer.PaymentPage(sight) && !Paid())
+                    if (Computer.PaymentPage(sight) && !Paid())
                         return End("done", Computer.ClaimsPaid(said) || Computer.AsksForCard(said) || Regex.IsMatch(args.Text ?? "", @"^\W*(done)?\W*$", RegexOptions.IgnoreCase) ? Computer.PayYourself : said.TrimEnd() + (Regex.IsMatch(said, @"[.!?]\s*$") ? " " : ". ") + Computer.PayYourself);
                     string trouble = doubted || Steps.Count == 0 || Computer.Troubled(said) ? null : Computer.Trouble(sight, firstWords);
                     if (trouble != null)
@@ -2721,7 +2721,7 @@ namespace CapriDesktop
                 if (tool == "type" && args.Enter != "yes" && (told.Contains("send") || approved.Contains("send")) && Computer.ChatBox(args, sight)) args.Enter = "yes";
                 string danger = Computer.Risk(tool, args, sight, typed != null);
                 // Paying with the card boxes still empty can't work, and the card is theirs to type, so she hands over instead of asking.
-                if (danger == "buy" && !Security.On(Security.Secrets) && sight != null && sight.Targets.Exists(found => Computer.CardBox(found) && string.IsNullOrEmpty(found.Value))) return End("asked", Computer.PayYourself);
+                if (danger == "buy" && sight != null && sight.Targets.Exists(found => Computer.CardBox(found) && string.IsNullOrEmpty(found.Value))) return End("asked", Computer.PayYourself);
                 if (Needs(danger))
                 {
                     Waiting = new KeyValuePair<string, ToolArguments>(tool, args);
@@ -3400,8 +3400,8 @@ namespace CapriDesktop
                 shown = "I don't accept cookies for you";
             }
             else if (tool == "click" && Computer.AddsToCart(Task, sight == null ? null : sight.Find(args.Target))) { result = Computer.NoCart; shown = Computer.NoCartShown; }
-            // Type passwords and card numbers on (Azure): the card is theirs to give, so she types it when their job does.
-            else if (tool == "type" && !Security.On(Security.Secrets) && Computer.CardBox(sight == null ? null : sight.Find(args.Target))) { result = Computer.NoCard; shown = Computer.NoCardShown; }
+            // Card details are always user-entered; refuse any attempt to type into a card field.
+            else if (tool == "type" && Computer.CardBox(sight == null ? null : sight.Find(args.Target))) { result = Computer.NoCard; shown = Computer.NoCardShown; }
             else if (tool == "type" && Computer.MadeUpEmail(args.Text, Known(sight)) != null)
             {
                 bool signing = Computer.SigningIn(sight, Task);

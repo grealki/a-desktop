@@ -4824,28 +4824,28 @@ namespace CapriDesktop
             mainframe.Sync();
         }
 
-        // Blackwall mode is SECURITY's Blackwall preset now. Flipping it the old way picks Blackwall, or Trusted to go back.
-        internal bool Bypassing { get { return Computer.Bypass; } }
-
-        internal void ToggleBypass() { Security.Pick(Computer.Bypass ? Security.Trusted : Security.Blackwall); }
-
-        // Settings from before the SECURITY window have no toggles: Blackwall mode moves to the Blackwall preset, "Hey Capri"
-        // and all, and everyone else gets Trusted, which is how she worked without it. True when it moved them.
+        // The old Blackwall bypass flag is migration-only; legacy settings now select the safe Azure preset.
         internal static bool Migrate(Preferences saved)
         {
-            if (saved.Permissions != null) return false;
-            saved.Permissions = Security.Of(saved.Bypass ? Security.Blackwall : Security.Trusted);
-            if (saved.Bypass) saved.HeyCapri = true;
+            if (saved.Permissions != null)
+            {
+                if (!saved.Bypass) return false;
+                saved.Bypass = false;
+                return true;
+            }
+            bool legacyAzure = saved.Bypass;
+            saved.Permissions = Security.Of(legacyAzure ? Security.Azure : Security.Trusted);
+            if (legacyAzure) saved.HeyCapri = true;
+            saved.Bypass = false;
             return true;
         }
 
-        // A toggle or preset changed: it's saved, Blackwall mode's old flag follows toggles 8 to 10 for older versions, and
-        // Settings and her SECURITY window show it.
+        // A toggle or preset changed: save the safe permissions and clear the obsolete bypass flag.
         private void SecurityChanged()
         {
             if (!Security.On(Security.Friends)) callSession.DropFriend(true);
             preferences.Permissions = Security.Saved;
-            preferences.Bypass = Computer.Bypass;
+            preferences.Bypass = false;
             SavePreferences();
             mainframe.Sync();
         }
@@ -4856,13 +4856,16 @@ namespace CapriDesktop
         private void SecurityChecks(System.Collections.Generic.List<string> checks, string output)
         {
             Func<string> bits = delegate { System.Text.StringBuilder all = new System.Text.StringBuilder(); for (int i = 0; i < Security.Count; i++) all.Append(Security.On(i) ? '1' : '0'); return all.ToString(); };
-            string[] presetBits = { "0000000000001", "1110000000001", "1111111000001", "1111111111100" };
+            string[] presetBits = { "0000000000001", "1110000000001", "1111111000001", "1111111000101" };
             System.Collections.Generic.List<string> wrong = new System.Collections.Generic.List<string>();
-            for (int preset = Security.Lockdown; preset <= Security.Blackwall; preset++)
+            for (int preset = Security.Lockdown; preset <= Security.Azure; preset++)
             {
                 Security.Pick(preset);
                 string shown = bits();
-                if (shown != presetBits[preset] || Security.Preset != preset || HeyCapriOn != (preset == Security.Blackwall) || preferences.Permissions != Security.Of(preset) || preferences.Bypass != (preset == Security.Blackwall) || Computer.Bypass != (preset == Security.Blackwall))
+                bool wake = preset == Security.Azure;
+                if (shown != presetBits[preset] || Security.Preset != preset || HeyCapriOn != wake || preferences.Permissions != Security.Of(preset) || preferences.Bypass || Computer.Bypass
+                    || !Security.Locked(Security.Pays) || !Security.Locked(Security.Unasked) || !Security.Locked(Security.Secrets)
+                    || Security.On(Security.Pays) || Security.On(Security.Unasked) || Security.On(Security.Secrets))
                     wrong.Add(Security.Presets[preset] + " " + shown + " saved " + preferences.Permissions + " hey " + HeyCapriOn);
             }
             Security.Pick(Security.Trusted);
@@ -4872,23 +4875,23 @@ namespace CapriDesktop
             Security.Set(Security.Open, true);
             bool backToTrusted = Security.Preset == Security.Trusted && preferences.Permissions == "1111111000" && !HeyCapriOn;
             if (wrong.Count > 0 || !custom || !backToTrusted) throw new Exception("SECURITY's presets went wrong: " + string.Join(" / ", wrong.ToArray()) + " / custom " + customShown + " / back " + backToTrusted);
-            checks.Add("PASS SECURITY presets: Lockdown turns every action toggle off, Guarded the first three on, Trusted the first seven and Blackwall the original eleven; friend requests stay off, keeping personal details out of her memories is on in all but Blackwall, and flipping a toggle makes it Custom and saves");
+            checks.Add("PASS SECURITY presets: Lockdown, Guarded, Trusted and Azure keep the approved ordinary-action settings; Azure only adds the optional wake word, while payments, unrequested actions and credentials remain locked to confirmation or manual entry; every preset saves without restoring the old bypass");
 
             DataContractJsonSerializer json = new DataContractJsonSerializer(typeof(Preferences));
             Func<string, Preferences> older = delegate(string text) { return (Preferences)json.ReadObject(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text))); };
-            Preferences wasBlackwall = older("{\"Bypass\":true,\"Size\":240}"), wasDefault = older("{\"Size\":240}"), wasMixed = older("{\"Bypass\":true,\"Permissions\":\"1010000000\",\"Size\":240}");
-            bool movedBlackwall = Migrate(wasBlackwall) && wasBlackwall.Permissions == "1111111111" && wasBlackwall.HeyCapri;
-            bool movedDefault = Migrate(wasDefault) && wasDefault.Permissions == "1111111000" && !wasDefault.HeyCapri;
-            bool keptMixed = !Migrate(wasMixed) && wasMixed.Permissions == "1010000000" && !Migrate(wasBlackwall);
-            Security.Load(wasBlackwall.Permissions);
-            bool loadedBlackwall = Computer.Bypass && Security.On(Security.Mouse);
+            Preferences wasLegacy = older("{\"Bypass\":true,\"Size\":240}"), wasDefault = older("{\"Size\":240}"), wasMixed = older("{\"Bypass\":true,\"Permissions\":\"1010000000\",\"Size\":240}");
+            bool movedLegacy = Migrate(wasLegacy) && wasLegacy.Permissions == Security.Of(Security.Azure) && wasLegacy.HeyCapri && !wasLegacy.Bypass;
+            bool movedDefault = Migrate(wasDefault) && wasDefault.Permissions == Security.Of(Security.Trusted) && !wasDefault.HeyCapri && !wasDefault.Bypass;
+            bool clearedMixed = Migrate(wasMixed) && wasMixed.Permissions == "1010000000" && !wasMixed.Bypass && !Migrate(wasLegacy);
+            Security.Load(wasLegacy.Permissions);
+            bool loadedLegacy = !Computer.Bypass && Security.On(Security.Mouse) && !Security.On(Security.Pays) && !Security.On(Security.Unasked) && !Security.On(Security.Secrets);
             Security.Load(wasMixed.Permissions);
             bool loadedMixed = Security.On(Security.Open) && !Security.On(Security.Media) && Security.On(Security.Shortcuts) && !Security.On(Security.Sends) && Security.Preset == Security.Custom;
             Security.Load("not toggles");
             bool unreadable = Security.Preset == Security.Trusted;
             Security.Load(preferences.Permissions);
-            if (!movedBlackwall || !movedDefault || !keptMixed || !loadedBlackwall || !loadedMixed || !unreadable || Security.Preset != Security.Trusted) throw new Exception("SECURITY didn't take over from Blackwall mode's settings: " + movedBlackwall + " " + movedDefault + " " + keptMixed + " " + loadedBlackwall + " " + loadedMixed + " " + unreadable);
-            checks.Add("PASS SECURITY from older settings: Blackwall mode (Bypass) moves to the Blackwall preset with \"Hey Capri\" on, everyone else gets Trusted, saved toggles load as they are, and unreadable ones fall back to Trusted");
+            if (!movedLegacy || !movedDefault || !clearedMixed || !loadedLegacy || !loadedMixed || !unreadable || Security.Preset != Security.Trusted) throw new Exception("SECURITY didn't safely migrate legacy settings: " + movedLegacy + " " + movedDefault + " " + clearedMixed + " " + loadedLegacy + " " + loadedMixed + " " + unreadable);
+            checks.Add("PASS SECURITY from older settings: legacy bypass flags are cleared and migrate to safe Azure permissions, existing explicit toggles are preserved, sensitive permissions stay disabled, and unreadable saves fall back to Trusted");
 
             // Her own tools: each toggle off holds its call and she asks; a yes runs it once, a no leaves it and anything else drops it.
             System.Collections.Generic.List<string> did = new System.Collections.Generic.List<string>();
@@ -5016,26 +5019,26 @@ namespace CapriDesktop
                 throw new Exception("Voice chat didn't ask first or run on a spoken yes: " + voiceHeld + " / " + voiceRan);
             checks.Add("PASS SECURITY gates on her tools: with each of the first six toggles off she holds the call and asks (\"Open spotify? Say yes and I will.\", \"Lock your PC?\", \"Use your mouse and keyboard to message Sam hi on Discord?\"), nothing runs until a yes, a yes runs it once, a no leaves it alone and a new message drops it; two held calls are one question and one yes; looking, notes, her nap, moves, animations, what's playing and cancelling a shutdown never ask; it works in text chat (her question word for word, with no second brain call), before she has a brain and in voice chat; and with Use your mouse and keyboard off her quick tools stay off the mouse");
 
-            // Her prompts follow the toggles, so she calls the tool and lets Capri ask instead of asking or saying it's done.
+            // The prompts never grant blanket permission: Azure keeps the same confirmations and manual credential entry as Trusted.
             string trustedNote = Security.Note, trustedAsk = Computer.AskLine(), trustedPrompt = Computer.Allowing(Computer.Prompt), trustedHands = Hands.Prompt;
             Security.Set(Security.Open, false);
             string openNote = Hands.Note, openHands = Hands.Prompt;
-            Security.Pick(Security.Blackwall);
-            string blackwallNote = Security.Note, blackwallAsk = Computer.AskLine(), blackwallPrompt = Computer.Allowing(Computer.Prompt);
+            Security.Pick(Security.Azure);
+            string azureNote = Security.Note, azureAsk = Computer.AskLine(), azurePrompt = Computer.Allowing(Computer.Prompt), azureHands = Hands.Prompt;
             Security.Pick(Security.Trusted);
             Security.Set(Security.Pays, true);
             string paysAsk = Computer.AskLine(), paysPrompt = Computer.Allowing(Computer.Prompt), paysTools = Computer.Tools;
-            Security.Pick(Security.Trusted);
             Security.Set(Security.Secrets, true);
             string secretsPrompt = Computer.Allowing(Computer.Prompt);
             Security.Pick(Security.Trusted);
             const string openLine = "They've set her SECURITY settings to ask first before you open apps, games or sites. Still call the tool as soon as they ask: Capri asks them herself";
             if (trustedNote.Length > 0 || trustedPrompt != Computer.Prompt || trustedHands != Hands.Prompt || trustedHands.IndexOf("SECURITY", StringComparison.Ordinal) >= 0 || trustedAsk.IndexOf("Ask them only before a step that buys or pays", StringComparison.Ordinal) != 0 || openNote.IndexOf(openLine, StringComparison.Ordinal) < 0 || openHands.IndexOf("Call the tool.\n" + openLine, StringComparison.Ordinal) < 0
-                || blackwallNote.Length > 0 || blackwallAsk.IndexOf("never ask before buying", StringComparison.Ordinal) < 0 || blackwallPrompt.IndexOf("Bypass all permissions", StringComparison.Ordinal) < 0
-                || paysAsk.IndexOf("buys or pays", StringComparison.Ordinal) >= 0 || paysAsk.IndexOf("They've said yes ahead of time to buying, paying and booking", StringComparison.Ordinal) < 0 || paysTools.IndexOf("buying, paying and booking", StringComparison.Ordinal) < 0 || paysPrompt.IndexOf("call ask before you buy", StringComparison.Ordinal) >= 0 || paysPrompt.IndexOf("Only call ask before a send, post, delete or install their job didn't mention", StringComparison.Ordinal) < 0 || paysPrompt.IndexOf("Never type passwords", StringComparison.Ordinal) < 0
-                || secretsPrompt.IndexOf("Type passwords, card numbers and other private details whenever their job needs them.", StringComparison.Ordinal) < 0 || secretsPrompt.IndexOf("Always call ask before you buy or pay for anything.", StringComparison.Ordinal) < 0)
-                throw new Exception("Her prompts didn't follow SECURITY: " + trustedNote + " / " + openNote.Substring(Math.Max(0, openNote.Length - 300)) + " / " + paysAsk);
-            checks.Add("PASS SECURITY prompts: under Trusted and Blackwall her prompts and tools read as they did; with a tool's toggle off her brain is told to still call it and let Capri ask; and her jobs' ask tool and prompt follow Pay, buy and book, Things your request didn't mention and Type passwords and card numbers one by one");
+                || azureNote != trustedNote || azureAsk != trustedAsk || azurePrompt != trustedPrompt || azureHands != trustedHands
+                || !Security.Locked(Security.Pays) || !Security.Locked(Security.Unasked) || !Security.Locked(Security.Secrets) || Security.On(Security.Pays) || Security.On(Security.Unasked) || Security.On(Security.Secrets)
+                || paysAsk != trustedAsk || paysPrompt != trustedPrompt || paysTools.IndexOf("before a step that buys or pays", StringComparison.Ordinal) < 0 || secretsPrompt != trustedPrompt
+                || Computer.Prompt.IndexOf("Never type passwords", StringComparison.Ordinal) < 0 || Computer.Prompt.IndexOf("Always call ask before you buy or pay for anything.", StringComparison.Ordinal) < 0)
+                throw new Exception("SECURITY prompts or fixed safeguards went wrong: " + trustedNote + " / " + openNote.Substring(Math.Max(0, openNote.Length - 300)) + " / " + paysAsk);
+            checks.Add("PASS SECURITY prompts: Azure preserves Trusted's ordinary-action prompts; payments, purchases, unrequested actions and credential entry remain protected even when legacy saved values or toggle attempts request otherwise");
 
             // Her jobs: toggles 7 to 10, with a pretend chat box and a pretend sign-in page.
             System.Collections.Generic.List<string> acted = new System.Collections.Generic.List<string>();
@@ -5054,7 +5057,7 @@ namespace CapriDesktop
             string[] sendScript = { "type{\"target\": \"1\", \"text\": \"hi\", \"enter\": \"yes\"}", "done{\"text\": \"Sent hi.\"}" };
             string[] keyScript = { "press{\"keys\": \"win+r\"}", "done{\"text\": \"Opened the Run box.\"}" };
             string[] passwordScript = { "ask{\"text\": \"What's your password?\"}" };
-            string sendTrusted, sendAsked, sendYes, keyAsked, keyYes, keyBlackwall, passwordTrusted, passwordOn;
+            string sendTrusted, sendAsked, sendYes, keyAsked, keyYes, keyAzure, keyAzureYes, passwordTrusted, passwordOn;
             bool keysFreed, needsRight;
             try
             {
@@ -5076,24 +5079,27 @@ namespace CapriDesktop
                 keyYes = keys.Run() + " [" + string.Join(",", acted.ToArray()) + "]";
                 keysFreed = !Computer.Barred("win+r");
                 acted.Clear();
-                Security.Pick(Security.Blackwall);
-                keyBlackwall = scripted(keyScript, "open the run box").Run() + " [" + string.Join(",", acted.ToArray()) + "]";
+                Security.Pick(Security.Azure);
+                Job azureKeys = scripted(keyScript, "open the run box");
+                keyAzure = azureKeys.Run() + " [" + string.Join(",", acted.ToArray()) + "] " + azureKeys.Asking;
+                keyAzureYes = azureKeys.Run() + " [" + string.Join(",", acted.ToArray()) + "]";
                 acted.Clear();
                 showing = login;
                 Security.Pick(Security.Trusted);
                 passwordTrusted = scripted(passwordScript, "log me in to my game").Run();
                 Security.Set(Security.Secrets, true);
                 passwordOn = scripted(passwordScript, "log me in to my game").Run();
-                // What each kind of step needs: an asked-for send needs toggle 7, buying 8, and anything unmentioned 9 as well.
+                // Sends can follow the user's request; payments and actions outside it always keep their separate approval gates.
+                Computer.KeysOk = false;
                 Security.Pick(Security.Trusted);
                 Job sam = new Job("message Sam hi on Discord"), hoodie = new Job("buy the blue hoodie"), browse = new Job("search the shop for hoodies");
                 bool trusted = !sam.Needs("send") && sam.Needs("delete") && hoodie.Needs("buy") && browse.Needs("buy") && sam.Needs("keys") && Computer.Barred("win+r") && Computer.Risk("press", new ToolArguments { Keys = "win+r" }, chat) == "keys";
                 Security.Set(Security.Pays, true);
-                bool pays = !hoodie.Needs("buy") && browse.Needs("buy");
+                bool pays = hoodie.Needs("buy") && browse.Needs("buy") && Security.Locked(Security.Pays) && !Security.On(Security.Pays);
                 Security.Set(Security.Unasked, true);
-                bool unasked = !browse.Needs("buy") && !sam.Needs("delete") && !sam.Needs("keys") && !Computer.Barred("win+r");
+                bool unasked = browse.Needs("buy") && sam.Needs("delete") && sam.Needs("keys") && Computer.Barred("win+r") && Security.Locked(Security.Unasked) && !Security.On(Security.Unasked);
                 Security.Set(Security.Sends, false);
-                bool sends = sam.Needs("send") && sam.Needs("delete") && !hoodie.Needs("buy");
+                bool sends = sam.Needs("send") && sam.Needs("delete") && hoodie.Needs("buy");
                 Security.Pick(Security.Lockdown);
                 bool lockdown = sam.Needs("send") && hoodie.Needs("buy") && sam.Needs("keys");
                 needsRight = trusted && pays && unasked && sends && lockdown;
@@ -5109,10 +5115,10 @@ namespace CapriDesktop
                 Security.Pick(Security.Trusted);
             }
             if (sendTrusted != "Sent hi. [type hi]" || sendAsked != "Should I send \"hi\"? [] True" || sendYes != "Sent hi. [type hi]") throw new Exception("Send, post and delete what you asked for went wrong: " + sendTrusted + " / " + sendAsked + " / " + sendYes);
-            if (keyAsked != "Should I press win+r? [] True" || keyYes != "Opened the Run box. [press win+r]" || !keysFreed || keyBlackwall != "Opened the Run box. [press win+r]") throw new Exception("Win + R didn't ask first under Things your request didn't mention: " + keyAsked + " / " + keyYes + " / " + keysFreed + " / " + keyBlackwall);
-            if (passwordTrusted != Computer.SignInYourself || passwordOn != "What's your password?") throw new Exception("Passwords didn't stay theirs to type: " + passwordTrusted + " / " + passwordOn);
-            if (!needsRight) throw new Exception("SECURITY's job toggles went wrong: " + string.Join(" / ", wrong.ToArray()));
-            checks.Add("PASS SECURITY in her jobs: Trusted sends what the job asked for and asks before paying, Win + R or anything unmentioned, as before; with Send, post and delete off she asks \"Should I send \"hi\"?\" and sends it on a yes; Win + R asks first and runs on a yes, and Blackwall presses it straight away; Pay, buy and book covers buying the job asked for, and Things your request didn't mention the rest; with Type passwords and card numbers off a sign-in still gets \"You'll need to sign in yourself first.\"");
+            if (keyAsked != "Should I press win+r? [] True" || keyYes != "Opened the Run box. [press win+r]" || !keysFreed || keyAzure != "Should I press win+r? [] True" || keyAzureYes != "Opened the Run box. [press win+r]" || Computer.Bypass) throw new Exception("Win + R must still ask first under Azure: " + keyAsked + " / " + keyYes + " / " + keyAzure + " / " + keyAzureYes + " / " + keysFreed);
+            if (passwordTrusted != Computer.SignInYourself || passwordOn != Computer.SignInYourself) throw new Exception("Passwords must stay theirs to type even after a legacy toggle attempt: " + passwordTrusted + " / " + passwordOn);
+            if (!needsRight) throw new Exception("SECURITY's job safeguards went wrong: " + string.Join(" / ", wrong.ToArray()));
+            checks.Add("PASS SECURITY in her jobs: requested sends can run, payments and unrequested actions always ask, Win + R asks under both Trusted and Azure, and sign-in fields always stay for the user to fill in");
 
             // The window: from HABITS, the slider and toggles as they'd use them, and the layout at 100%, 150% and 200%.
             mainframe.ShowSecurity();
@@ -5123,9 +5129,9 @@ namespace CapriDesktop
             string tapped = mainframe.SecurityShown;
             mainframe.SlideSecurity(Security.Lockdown);
             string locked = mainframe.SecurityShown;
-            mainframe.SlideSecurity(Security.Blackwall);
+            mainframe.SlideSecurity(Security.Azure);
             string walled = mainframe.SecurityShown;
-            bool walledHey = HeyCapriOn, walledSettings = mainframe.BlackwallStatus == "Security: Blackwall | She never asks, and listens for Hey Capri.";
+            bool walledHey = HeyCapriOn, walledSettings = mainframe.AzureStatus == "Security: Azure | Normal actions on; sensitive actions stay protected.";
             mainframe.SlideSecurity(Security.Trusted);
             mainframe.FlipSecurity(Security.Friends);
             bool friendRow = Security.On(Security.Friends) && Security.Preset == Security.Custom && preferences.Permissions == "11111110001";
@@ -5138,11 +5144,11 @@ namespace CapriDesktop
             string at200 = mainframe.SecurityAt(2f / machine, Path.Combine(output, "security-200.png"));
             Security.Pick(Security.Trusted);
             if (opened == null || !opened.StartsWith("Trusted | Trusted | 1111111000001 | She does what you ask", StringComparison.Ordinal) || !flipped.StartsWith("Custom | Trusted | 0111111000001 | Your own mix", StringComparison.Ordinal) || flippedSaved != "0111111000"
-                || !tapped.StartsWith("Trusted | Trusted | 1111111000001", StringComparison.Ordinal) || !locked.StartsWith("Lockdown | Lockdown | 0000000000001 | She asks first before she does anything", StringComparison.Ordinal) || !walled.StartsWith("Blackwall | Blackwall | 1111111111100 | She never asks", StringComparison.Ordinal) || !walledHey || !walledSettings || HeyCapriOn)
+                || !tapped.StartsWith("Trusted | Trusted | 1111111000001", StringComparison.Ordinal) || !locked.StartsWith("Lockdown | Lockdown | 0000000000001 | She asks first before she does anything", StringComparison.Ordinal) || !walled.StartsWith("Azure | Azure | 1111111000101 | Normal desktop actions are enabled; sensitive actions still need your confirmation.", StringComparison.Ordinal) || !walledHey || !walledSettings || HeyCapriOn)
                 throw new Exception("The SECURITY window went wrong: " + opened + " // " + flipped + " // " + tapped + " // " + locked + " // " + walled + " // " + walledSettings);
             if (!friendRow) throw new Exception("The SECURITY friend request row did not toggle and save.");
             if (crowded != null || at100 != null || at150 != null || at200 != null) throw new Exception("The SECURITY window's layout doesn't fit: " + crowded + " / 100% " + at100 + " / 150% " + at150 + " / 200% " + at200);
-            checks.Add("PASS SECURITY window: Settings > HABITS opens it on Trusted; a toggle click makes it Custom and saves, a click on the slider puts Trusted back, sliding to Lockdown or Blackwall sets every toggle (and \"Hey Capri\") and Settings follows; at 100%, 150% and 200% nothing overlaps, pokes out or gets cut off (security-100.png, security-150.png, security-200.png)");
+            checks.Add("PASS SECURITY window: Settings > HABITS opens it on Trusted; a toggle click makes it Custom and saves, a click on the slider puts Trusted back, sliding to Lockdown or Azure updates the safe toggles and optional wake word; at 100%, 150% and 200% nothing overlaps, pokes out or gets cut off (security-100.png, security-150.png, security-200.png)");
         }
 
         // SECURITY's 13th toggle, Keep personal details out of her memories (#88, Lachy, 5 Nov), in a section of its own so a
@@ -5167,47 +5173,43 @@ namespace CapriDesktop
                 Security.HeyOn = null;
                 Security.SetHey = null;
 
-                // Each preset: on in Lockdown, Guarded and Trusted, off in Blackwall, and their saves read as they did before it.
+                // Every preset keeps personal details out of memories by default, including Azure.
                 System.Collections.Generic.List<string> wrong = new System.Collections.Generic.List<string>();
-                for (int preset = Security.Lockdown; preset <= Security.Blackwall; preset++)
+                for (int preset = Security.Lockdown; preset <= Security.Azure; preset++)
                 {
                     Security.Pick(preset);
-                    if (Security.On(Security.Personal) != (preset != Security.Blackwall) || Security.Preset != preset || Security.Saved.Length != 10 || preferences.Permissions != Security.Saved)
+                    if (!Security.On(Security.Personal) || Security.Preset != preset || Security.Saved.Length != 10 || preferences.Permissions != Security.Saved)
                         wrong.Add(Security.Presets[preset] + " " + Security.On(Security.Personal) + " saved " + preferences.Permissions);
                 }
-                // Flipped away from its preset's default it makes Custom and saves a 12th mark, read back as it was.
-                Security.Pick(Security.Trusted);
+                // Turning the personal-data safeguard off makes a Custom preset and writes its extra mark.
+                Security.Pick(Security.Azure);
                 Security.Set(Security.Personal, false);
-                bool trustedOff = Security.Preset == Security.Custom && preferences.Permissions == "111111100000";
+                bool azureOff = Security.Preset == Security.Custom && preferences.Permissions == "111111100000";
                 Security.Load(preferences.Permissions);
-                trustedOff &= !Security.On(Security.Personal) && Security.Preset == Security.Custom;
+                azureOff &= !Security.On(Security.Personal) && Security.Preset == Security.Custom;
                 Security.Set(Security.Personal, true);
-                trustedOff &= Security.Preset == Security.Trusted && preferences.Permissions == "1111111000";
-                Security.Pick(Security.Blackwall);
-                Security.Set(Security.Personal, true);
-                bool blackwallOn = Security.Preset == Security.Custom && preferences.Permissions == "111111111101";
-                Security.Load(preferences.Permissions);
-                blackwallOn &= Security.On(Security.Personal) && Security.On(Security.Secrets) && !Security.On(Security.Friends);
-                // The old Blackwall switch sets toggles 1 to 10 and leaves this one alone.
-                Security.Pick(Security.Trusted);
+                azureOff &= Security.On(Security.Personal) && Security.Preset == Security.Azure && preferences.Permissions == "1111111000";
+                Security.Pick(Security.Azure);
+                bool azureRestored = Security.Preset == Security.Azure && Security.On(Security.Personal);
+                // Legacy bypass writes are ignored and cannot change the selected safe preset or privacy setting.
                 Computer.Bypass = true;
-                bool switchLeaves = Security.On(Security.Personal);
+                bool legacyBypassDisabled = !Computer.Bypass && Security.Preset == Security.Azure && Security.On(Security.Personal);
                 Computer.Bypass = false;
-                switchLeaves &= Security.On(Security.Personal) && Security.Preset == Security.Trusted;
-                // Saves from before it get their preset's default: off for Blackwall's ten toggles, on for anything else.
+                legacyBypassDisabled &= !Computer.Bypass && Security.Preset == Security.Azure && Security.On(Security.Personal);
+                // Old all-on permission saves have restricted bits stripped and retain the privacy safeguard.
                 DataContractJsonSerializer json = new DataContractJsonSerializer(typeof(Preferences));
-                Preferences wasBlackwall = (Preferences)json.ReadObject(new MemoryStream(System.Text.Encoding.UTF8.GetBytes("{\"Bypass\":true,\"Size\":240}")));
-                Migrate(wasBlackwall);
+                Preferences wasLegacy = (Preferences)json.ReadObject(new MemoryStream(System.Text.Encoding.UTF8.GetBytes("{\"Bypass\":true,\"Size\":240}")));
+                Migrate(wasLegacy);
                 string olderSaves = "";
-                foreach (string older in new[] { "0000000000", "1110000000", "1111111000", "0111111000", "01111110001", wasBlackwall.Permissions, "1111111111", null, "not toggles" })
+                foreach (string older in new[] { "0000000000", "1110000000", "1111111000", "0111111000", "01111110001", wasLegacy.Permissions, "1111111111", null, "not toggles" })
                 {
                     Security.Load(older);
                     olderSaves += (Security.On(Security.Personal) ? "1" : "0");
                 }
                 Security.Load(securityWas);
-                if (wrong.Count > 0 || !trustedOff || !blackwallOn || !switchLeaves || olderSaves != "111110011")
-                    throw new Exception("Keep personal details out of her memories went wrong in SECURITY: " + string.Join(" / ", wrong.ToArray()) + " / Trusted off " + trustedOff + " / Blackwall on " + blackwallOn + " / old switch " + switchLeaves + " / older saves " + olderSaves);
-                checks.Add("PASS SECURITY's Keep personal details out of her memories: on in Lockdown, Guarded and Trusted and off in Blackwall, with their saves as they were; turned the other way it's Custom and saves a 12th mark that reads back; the old Blackwall switch leaves it alone; and a save from before it gets it off for Blackwall's ten toggles and on for every other");
+                if (wrong.Count > 0 || !azureOff || !azureRestored || !legacyBypassDisabled || olderSaves != "111111111")
+                    throw new Exception("Keep personal details out of her memories went wrong in SECURITY: " + string.Join(" / ", wrong.ToArray()) + " / Azure off " + azureOff + " / Azure restored " + azureRestored + " / legacy bypass " + legacyBypassDisabled + " / old saves " + olderSaves);
+                checks.Add("PASS SECURITY's Keep personal details out of her memories: on in every preset including Azure; turning it off makes a Custom save that reads back; legacy bypass writes cannot change the preset; old permission saves keep personal data protected");
 
                 // On: a card game label is kept, a card number and a street address aren't, and an address she saw is left out.
                 Security.Pick(Security.Trusted);
@@ -5224,7 +5226,7 @@ namespace CapriDesktop
                     throw new Exception("Keep personal details out of her memories on went wrong: " + cardGame + " / " + phoneModel + " / " + cardLabel + " / " + cardValue + " / " + emailLabel + " / " + cardNote + " / " + cafeNote + " / " + onNotes.Replace("\n", " | ") + " / " + onSeen);
                 checks.Add("PASS Keep personal details out of her memories on: \"Favourite card game: Uno\" and \"Phone model\" are kept while a \"Card number\" label, a card number in an answer, an \"Email\" label, a card number in a note and a cafe's street address aren't, and an address she saw on screen is left out of what she remembers");
 
-                // Off, as in Blackwall: Get to know me's answers and what she saw are kept as they are, and her notes keep only their
+                // Off, when the user disables it: Get to know me's answers and what she saw are kept as they are, and her notes keep only their
                 // rule from before #88, so a card number still stays out. Turned back on, the address she saw is left out again.
                 string offEmail, offCafe, offCard, offNotes, offSeen, backSeen;
                 Security.Set(Security.Personal, false);
@@ -5285,7 +5287,7 @@ namespace CapriDesktop
                     || hiddenText.IndexOf("[4] box \"Search\" = \"capri\"", StringComparison.Ordinal) < 0 || hiddenText.IndexOf("[5] box \"Card number\"\n", StringComparison.Ordinal) < 0 && !hiddenText.EndsWith("[5] box \"Card number\"", StringComparison.Ordinal)
                     || shownText.IndexOf("[1] box \"Card number\" = \"4111 1111 1111 1111\"", StringComparison.Ordinal) < 0 || shownText.IndexOf("[2] box \"Email\" = \"lachy@example.com\"", StringComparison.Ordinal) < 0 || shownText.IndexOf("[3] box \"Street address\" = \"12 Baker Street\"", StringComparison.Ordinal) < 0 || shownText.IndexOf("(value hidden)", StringComparison.Ordinal) >= 0)
                     throw new Exception("A form's personal boxes went wrong: on " + hiddenText + " // off " + shownText);
-                checks.Add("PASS a form's personal boxes: with Keep personal details out of her memories on, a card number, an email and a street address reach her jobs as (value hidden) while an ordinary box and an empty card box read as they are; off, as in Blackwall, she reads all three");
+                checks.Add("PASS a form's personal boxes: with Keep personal details out of her memories on, a card number, an email and a street address reach her jobs as (value hidden) while an ordinary box and an empty card box read as they are; when the user disables it, she reads all three");
 
                 // Her SECURITY window: the 13th row under HER MEMORY flips and saves, and it fits at 100%, 150% and 200%.
                 Security.Pick(Security.Trusted);
@@ -5295,7 +5297,7 @@ namespace CapriDesktop
                 string flipped = mainframe.SecurityShown, flippedSaved = preferences.Permissions;
                 mainframe.FlipSecurity(Security.Personal);
                 string back = mainframe.SecurityShown;
-                mainframe.SlideSecurity(Security.Blackwall);
+                mainframe.SlideSecurity(Security.Azure);
                 string walled = mainframe.SecurityShown;
                 mainframe.SlideSecurity(Security.Lockdown);
                 string locked = mainframe.SecurityShown;
@@ -5307,10 +5309,10 @@ namespace CapriDesktop
                 string at150 = mainframe.SecurityAt(1.5f / machine, Path.Combine(output, "security-privacy-150.png"));
                 string at200 = mainframe.SecurityAt(2f / machine, Path.Combine(output, "security-privacy-200.png"));
                 if (opened == null || !opened.StartsWith("Trusted | Trusted | 1111111000001", StringComparison.Ordinal) || !flipped.StartsWith("Custom | Trusted | 1111111000000 | Your own mix", StringComparison.Ordinal) || flippedSaved != "111111100000"
-                    || !back.StartsWith("Trusted | Trusted | 1111111000001", StringComparison.Ordinal) || !walled.StartsWith("Blackwall | Blackwall | 1111111111100", StringComparison.Ordinal) || !locked.StartsWith("Lockdown | Lockdown | 0000000000001 | She asks first before she does anything on your PC.", StringComparison.Ordinal)
+                    || !back.StartsWith("Trusted | Trusted | 1111111000001", StringComparison.Ordinal) || !walled.StartsWith("Azure | Azure | 1111111000101 | Normal desktop actions are enabled; sensitive actions still need your confirmation.", StringComparison.Ordinal) || !locked.StartsWith("Lockdown | Lockdown | 0000000000001 | She asks first before she does anything on your PC.", StringComparison.Ordinal)
                     || crowded != null || at100 != null || at150 != null || at200 != null)
                     throw new Exception("The SECURITY window's 13th row went wrong: " + opened + " // " + flipped + " (" + flippedSaved + ") // " + back + " // " + walled + " // " + locked + " // fit " + crowded + " / 100% " + at100 + " / 150% " + at150 + " / 200% " + at200);
-                checks.Add("PASS SECURITY window's 13th row: Keep personal details out of her memories sits under HER MEMORY, on for Trusted and Lockdown and off for Blackwall; a click makes it Custom and saves, a second puts Trusted back; and at 100%, 150% and 200% nothing overlaps, pokes out or gets cut off (security-privacy-100.png, security-privacy-150.png, security-privacy-200.png)");
+                checks.Add("PASS SECURITY window's 13th row: Keep personal details out of her memories stays on for Azure and every other preset; a click makes it Custom and saves, a second puts Trusted back; and at 100%, 150% and 200% nothing overlaps, pokes out or gets cut off (security-privacy-100.png, security-privacy-150.png, security-privacy-200.png)");
             }
             finally
             {
@@ -6329,7 +6331,7 @@ namespace CapriDesktop
                     if (mainframe.ColoursShown != Neon.LookNames[look]) throw new Exception("The Mainframe colours row did not show " + Neon.LookNames[look] + ": " + mainframe.ColoursShown);
                     string stale = StaleMenu(menuSlots, Neon.LookColours(look));
                     if (stale != null) throw new Exception(Neon.LookNames[look] + " did not reach " + stale + ".");
-                    if (LookContrast(Mainframe.BlackwallInk, Neon.Field) < 4.5) throw new Exception(Neon.LookNames[look] + "'s Blackwall name is hard to read on its box.");
+                    if (LookContrast(Mainframe.AzureInk, Neon.Field) < 4.5) throw new Exception(Neon.LookNames[look] + "'s Azure name is hard to read on its box.");
                     HashSet<int> slots = new HashSet<int>();
                     foreach (Color slot in Neon.LookColours(look)) slots.Add(slot.ToArgb());
                     if (slots.Count != Neon.LookColours(look).Length) throw new Exception("Two of " + Neon.LookNames[look] + "'s colours are the same, so a live change can't tell them apart.");
@@ -7364,7 +7366,6 @@ namespace CapriDesktop
         {
             name = (name ?? "").Trim();
             if (name.Length == 0) return "Type a model name first.";
-            if (brain.Remote != null && brain.Remote.Code) return brain.Remote.CodeNote;
             string address = Brain.LocalAddress(preferences.LocalAddress);
             if (preferences.Tier == 0 && address != null && (localAddressTyped || brain.Model == null))
             {
@@ -10649,7 +10650,6 @@ namespace CapriDesktop
             ++providerListing;
             ++cloudListing;
             key = (key ?? "").Trim();
-            if (Cloud.IsCode(key)) key = key.ToUpperInvariant();
             string kind = Cloud.KindOf(key);
             if (kind == null) { TextProblem(key.StartsWith("sk-nous-", StringComparison.Ordinal) ? "Nous Portal keys aren't supported yet." : Brain.NotAKey, true); return; }
             if (targetTier == 1 && !Cloud.MediumKind(kind)) { mainframe.OfferPaidText(key); return; }
@@ -33344,7 +33344,7 @@ namespace CapriDesktop
             Section(checks, "SmokeClipPopup", delegate { SmokeClipPopup(checks, output); });
             Section(checks, "SmokeCallMode", delegate { SmokeCallMode(checks, Path.Combine(output, "call-mode")); });
             Section(checks, "SmokeCallApps", delegate { SmokeCallApps(checks); });
-            Section(checks, "SmokeCapriCodes", delegate { SmokeCapriCodes(checks); });
+            Section(checks, "SmokeLegacyAccessCodes", delegate { SmokeLegacyAccessCodes(checks); });
             Section(checks, "SmokeCallErrands", delegate { SmokeCallErrands(checks); });
             Section(checks, "SmokeCallFriends", delegate { SmokeCallFriends(checks); });
             Section(checks, "SmokeCallModeUi", delegate { Directory.CreateDirectory(Path.Combine(output, "call-mode")); SmokeCallModeUi(checks, Path.Combine(output, "call-mode")); });
@@ -34971,7 +34971,7 @@ namespace CapriDesktop
                 if (opened.Count != 0 || callSession.Friend != null || requests.Count != 1 || requests[0].Contains("\"tools\":")) throw new Exception("Friend asks were not off by default.");
                 checks.Add("PASS friend asks off: Discord open Notepad stays conversation and runs nothing");
 
-                foreach (int preset in new[] { Security.Lockdown, Security.Guarded, Security.Trusted, Security.Blackwall })
+                foreach (int preset in new[] { Security.Lockdown, Security.Guarded, Security.Trusted, Security.Azure })
                 {
                     Security.Pick(preset);
                     if (Security.On(Security.Friends)) throw new Exception("A SECURITY preset opted into friend requests.");
@@ -34982,7 +34982,7 @@ namespace CapriDesktop
                 Security.Load(friendSaved);
                 if (!Security.On(Security.Friends)) throw new Exception("The friend switch did not reload.");
                 Security.Load("1111111111");
-                if (Security.On(Security.Friends) || !Security.On(Security.Secrets)) throw new Exception("Old SECURITY settings opted into friend requests or lost their old bits.");
+                if (Security.On(Security.Friends) || Security.On(Security.Secrets) || !Security.Locked(Security.Secrets)) throw new Exception("Old SECURITY settings opted into friend requests or restored a restricted permission.");
                 Security.Load(friendSaved);
                 checks.Add("PASS friend requests save and reload in SECURITY, old ten-bit settings leave them off, and every preset leaves them off");
 
@@ -35441,88 +35441,16 @@ namespace CapriDesktop
             }
         }
 
-        private void SmokeCapriCodes(System.Collections.Generic.List<string> checks)
+        private void SmokeLegacyAccessCodes(System.Collections.Generic.List<string> checks)
         {
-            string codeKey = "CAPRI-0123-4567-89AB-CDEF", codeTyped = "  capri-0123-4567-89ab-cdef  ";
-            if (!Cloud.IsCode(codeKey) || !Cloud.IsCode(codeTyped) || Cloud.KindOf(codeTyped) != "anthropic" || Cloud.IsCode("CAPRI-0123-4567-89AI-CDEF") || Cloud.IsCode("CAPRI-0123-4567-89AU-CDEF") || Cloud.IsCode(codeKey + "-0000")) throw new Exception("Capri codes were sorted wrong.");
-            Cloud codeCloud = new Cloud(codeTyped, "claude-sonnet-5-5"), realKeyCloud = new Cloud("sk-ant-test", "claude-sonnet-5-5");
-            codeCloud.Model = "claude-sonnet-5-5";
-            if (!codeCloud.Code || !codeCloud.Claude || codeCloud.Key != codeKey || codeCloud.Model != Brain.Fastest || realKeyCloud.Code || realKeyCloud.Model != "claude-sonnet-5-5" || realKeyCloud.Key != "sk-ant-test") throw new Exception("A Capri code didn't keep Haiku or changed a real key.");
-            if (Brain.ClaudeAddress(codeTyped, "/messages") != "https://capri-reactions.lachydotmcg.workers.dev/brain/v1/messages" || Brain.ClaudeAddress(realKeyCloud.Key, "/messages") != Brain.Anthropic + "/v1/messages") throw new Exception("A Capri code or real key picked the wrong address.");
-            if (Brain.Redacted(codeTyped).Trim() != "[redacted]") throw new Exception("A Capri code could reach a log.");
-            checks.Add("PASS Capri codes accept lowercase and outer spaces, reject other shapes, keep Haiku 5.5 and use the worker while real Claude keys keep their model and address");
-            System.Collections.Generic.List<string> codeAsked = new System.Collections.Generic.List<string>(), realKeyAsked = new System.Collections.Generic.List<string>();
-            System.Net.Sockets.TcpListener codeFake, realKeyFake;
-            string[] codeRefusals = { "That Capri code isn't right.", "That Capri code was switched off.", "That Capri code has expired.", "That Capri code has used up its budget." };
-            string codeReply = "{\"content\":[{\"type\":\"text\",\"text\":\"Code brain online.\"}],\"stop_reason\":\"end_turn\"}";
-            System.Collections.Generic.List<string> codeReplies = new System.Collections.Generic.List<string> { "{\"data\":[{\"type\":\"model\",\"id\":\"claude-haiku-5-5\",\"display_name\":\"Claude Haiku 5.5\"}],\"has_more\":false}", codeReply, codeReply };
-            for (int codeIndex = 0; codeIndex < codeRefusals.Length; codeIndex++) codeReplies.Add("!" + (codeIndex == 0 ? "401" : "403") + " {\"type\":\"error\",\"error\":{\"type\":\"" + (codeIndex == 0 ? "authentication_error" : "permission_error") + "\",\"message\":" + Voice.Quote(codeRefusals[codeIndex]) + "}}");
-            string codeAddress = FakeServer(codeReplies.ToArray(), codeAsked, out codeFake, headers: "capri-code-left: 3.42\r\ncapri-code-expires: 2027-12-06T00:00:00Z\r\n");
-            string realKeyAddress = FakeServer(new[] { codeReply }, realKeyAsked, out realKeyFake);
-            string codesBefore = Brain.Codes, anthropicBeforeCode = Brain.Anthropic, modelBeforeCode = brain.Model;
-            Cloud remoteBeforeCode = brain.Remote;
-            try
-            {
-                Brain.Codes = codeAddress + "/brain";
-                Brain.Anthropic = realKeyAddress;
-                System.Collections.Generic.List<string> codeModels = Brain.CloudModels(codeTyped);
-                if (codeModels.Count != 1 || codeModels[0] != Brain.Fastest) throw new Exception("A code didn't list only Haiku.");
-                Brain codeBrain = new Brain { Remote = codeCloud, Model = codeCloud.Model };
-                if (codeBrain.Advises || !codeBrain.Drives) throw new Exception("A code offered another model or lost her hands.");
-                mainframe.ShowCloud(codeCloud, new System.Collections.Generic.List<string> { Brain.Fastest, "claude-sonnet-5-5" });
-                if (!mainframe.Status.EndsWith(" | Capri code: Claude Haiku 5.5.", StringComparison.Ordinal) || mainframe.BrainChoices.Length != 1 || mainframe.BrainChoices[0] != "Claude Haiku 5.5") throw new Exception("The code note or fixed model picker was wrong.");
-                mainframe.PickBrain(0);
-                brain.Remote = codeCloud;
-                brain.Model = Brain.Fastest;
-                ChooseModel("claude-sonnet-5-5");
-                if (brain.Model != Brain.Fastest || ChooseCustomModel("claude-sonnet-5-5", null) != codeCloud.CodeNote) throw new Exception("A code let a custom model replace Haiku.");
-                brain.Remote = remoteBeforeCode;
-                brain.Model = modelBeforeCode;
-                if (codeBrain.Ask("hello") != "Code brain online.") throw new Exception("The code brain reply was wrong.");
-                mainframe.ShowCloud(codeCloud, codeModels);
-                if (codeCloud.CodeNote != "Capri code: Claude Haiku 5.5, $3.42 left until 6 Dec." || !mainframe.Status.EndsWith(" | " + codeCloud.CodeNote, StringComparison.Ordinal)) throw new Exception("The code note didn't read the reply headers: " + codeCloud.CodeNote);
-                System.Net.WebHeaderCollection codeHeaders = new System.Net.WebHeaderCollection();
-                codeHeaders["capri-code-left"] = "2.00";
-                codeHeaders["capri-code-expires"] = "";
-                codeCloud.ReadCode(codeHeaders);
-                if (codeCloud.CodeNote != "Capri code: Claude Haiku 5.5, $2.00 left.") throw new Exception("A code without an expiry showed a date.");
-                codeHeaders["capri-code-left"] = "NaN";
-                codeCloud.ReadCode(codeHeaders);
-                if (codeCloud.CodeNote != "Capri code: Claude Haiku 5.5, $2.00 left.") throw new Exception("A bad code header replaced the note.");
-                ClaudeReply codeDriven = codeBrain.Drive("Say hello.", "[]", "[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"hello\"}]}]", false, true);
-                if (codeDriven.Content == null || codeDriven.Content[0].Text != "Code brain online.") throw new Exception("Her hands didn't use the code brain.");
-                foreach (string codeRefusal in codeRefusals)
-                {
-                    bool codeTold = false;
-                    try { codeBrain.Ask("hello again"); }
-                    catch (BrainException codeError) { codeTold = codeError.Told && codeError.Message == codeRefusal; }
-                    if (!codeTold) throw new Exception("A code refusal lost its plain line: " + codeRefusal);
-                }
-                Brain realKeyBrain = new Brain { Remote = realKeyCloud, Model = realKeyCloud.Model };
-                if (realKeyBrain.Ask("hello") != "Code brain online.") throw new Exception("A real Claude key stopped working.");
-                mainframe.ShowCloud(realKeyCloud, new System.Collections.Generic.List<string> { realKeyCloud.Model });
-                if (!mainframe.Status.EndsWith(" | Using your Anthropic key", StringComparison.Ordinal)) throw new Exception("A real Claude key got a code note.");
-                string[] codeSent, realKeySent;
-                lock (codeAsked) codeSent = codeAsked.ToArray();
-                lock (realKeyAsked) realKeySent = realKeyAsked.ToArray();
-                if (codeSent.Length != 7 || codeSent[0].IndexOf("GET /brain/v1/models?limit=100 ", StringComparison.Ordinal) < 0) throw new Exception("A code checked the wrong model list.");
-                for (int codeIndex = 0; codeIndex < codeSent.Length; codeIndex++)
-                {
-                    if (codeSent[codeIndex].IndexOf("x-api-key: " + codeKey, StringComparison.Ordinal) < 0 || codeSent[codeIndex].IndexOf("anthropic-version: 2026-10-21", StringComparison.Ordinal) < 0) throw new Exception("A code request had the wrong headers.");
-                    if (codeIndex > 0 && (codeSent[codeIndex].IndexOf("POST /brain/v1/messages ", StringComparison.Ordinal) < 0 || codeSent[codeIndex].IndexOf("\"model\":\"claude-haiku-5-5\"", StringComparison.Ordinal) < 0 || codeSent[codeIndex].IndexOf("advisor_20260301", StringComparison.Ordinal) >= 0)) throw new Exception("A code request left Haiku or the worker.");
-                }
-                if (realKeySent.Length != 1 || realKeySent[0].IndexOf("POST /v1/messages ", StringComparison.Ordinal) < 0 || realKeySent[0].IndexOf("x-api-key: sk-ant-test", StringComparison.Ordinal) < 0 || realKeySent[0].IndexOf("\"model\":\"claude-sonnet-5-5\"", StringComparison.Ordinal) < 0) throw new Exception("A real key went through the code worker or changed model.");
-                checks.Add("PASS a code lists only Haiku, keeps its picker fixed, sends chat and hands through the worker, shows dollars and optional expiry from headers, and keeps every refusal's plain line; a real Claude key still goes straight to Anthropic");
-            }
-            finally
-            {
-                Brain.Codes = codesBefore;
-                Brain.Anthropic = anthropicBeforeCode;
-                brain.Remote = remoteBeforeCode;
-                brain.Model = modelBeforeCode;
-                codeFake.Stop();
-                realKeyFake.Stop();
-            }
+            const string legacy = "CAPRI-0123-4567-89AB-CDEF";
+            Cloud legacyCloud = new Cloud(legacy, "claude-sonnet-5-5");
+            Cloud realKey = new Cloud("sk-ant-test", "claude-sonnet-5-5");
+            if (Cloud.KindOf(legacy) != null || legacyCloud.Kind != null || legacyCloud.Claude
+                || realKey.Kind != "anthropic" || !realKey.Claude || realKey.Model != "claude-sonnet-5-5"
+                || Brain.ClaudeAddress(realKey.Key, "/messages") != Brain.Anthropic + "/v1/messages")
+                throw new Exception("A legacy Capri access-code string was treated as a provider, or a user's Anthropic key changed.");
+            checks.Add("PASS legacy Capri access-code strings are not recognized as providers; user-supplied Anthropic keys retain their model and use Anthropic directly");
         }
 
         internal void StartSmokeTest(string output, SmokeOptions options)
@@ -38051,36 +37979,38 @@ namespace CapriDesktop
                                 throw new Exception("A voice chat job didn't answer at once, ran twice or shared the mouse: " + firstAnswer + " in " + answeredMs + " ms / " + retryAnswer + " / " + laterRan + " / told " + laterSaid);
                             checks.Add("PASS voice chat jobs: a cursor job answers ElevenLabs' tool call at once instead of timing out at 20 s, runs on its own and says how it went when it ends; the same job asked again joins it, and a second job waits its turn on the mouse");
                             checks.Add("PASS use her cursor: on by default she searches YouTube and picks a video and drags Spotify's volume slider with her own cursor when they say Spotify; Spotify music keeps its direct tool; plain volume uses the PC's volume keys even with Spotify open; a slider she can't reach falls back to the keys unless they stopped her; if her brain gets lost the quick tool still does it, and turning it off uses the quick tools");
-                            bool bypassWas = Computer.Bypass;
                             Job payJob = new Job("play lofi on youtube"), sendingJob = new Job("message Sam hi on Discord");
-                            Computer.Bypass = false;
+                            Security.Pick(Security.Trusted);
+                            Computer.KeysOk = false;
                             bool checksPay = !Computer.Needless("Should I pay $5 for it?") && !Computer.Needless("It's $4.99. Buy it?") && !Computer.Needless("Book the 7:30 table at Nobu?") && !Computer.Needless("Reserve it?") && !Computer.Needless("Place bid?") && payJob.Needs("buy") && !sendingJob.Needs("send") && Computer.Allowing(Computer.Prompt) == Computer.Prompt
                                 && Computer.Barred("ctrl+shift+esc") && (Computer.Tools + Computer.ClaudeTools + Computer.Listing).Split(new[] { "before a step that buys or pays" }, StringSplitOptions.None).Length == 4;
+                            string safePrompt = Computer.Allowing(Computer.Prompt), safeSeeing = Computer.Allowing(Computer.Seeing);
                             Computer.Bypass = true;
-                            // Her ask tool's own description stops telling her to ask before buying, and a bare "Buy it?" never reaches them.
-                            string bypassTools = Computer.Tools + Computer.ClaudeTools + Computer.Listing;
-                            bool paysAhead = Computer.Needless("Should I pay $5 for it?") && Computer.Needless("It's $4.99. Buy it?") && Computer.Needless("Place the order for $12?") && Computer.Needless("Book the 7:30 table at Nobu?") && !Computer.Needless("Which size do you want?")
-                                && bypassTools.IndexOf("buys or pays", StringComparison.Ordinal) < 0 && bypassTools.Split(new[] { "never ask before buying" }, StringSplitOptions.None).Length == 4
-                                && !payJob.Needs("buy") && !payJob.Needs("delete") && !Computer.Barred("ctrl+shift+esc") && !Computer.Barred("win+r");
-                            string bypassPrompt = Computer.Allowing(Computer.Prompt), bypassSeeing = Computer.Allowing(Computer.Seeing);
-                            Computer.Bypass = bypassWas;
-                            if (!checksPay || !paysAhead || bypassPrompt.IndexOf("call ask before you buy", StringComparison.Ordinal) >= 0 || bypassPrompt.IndexOf("Bypass all permissions", StringComparison.Ordinal) < 0 || bypassSeeing.IndexOf("stop and ask", StringComparison.Ordinal) >= 0
-                                || bypassSeeing.IndexOf("Bypass all permissions", StringComparison.Ordinal) < 0 || bypassPrompt.IndexOf("Never type passwords", StringComparison.Ordinal) >= 0 || bypassSeeing.IndexOf("Never type passwords", StringComparison.Ordinal) >= 0
-                                || bypassPrompt.IndexOf("Type passwords, card numbers", StringComparison.Ordinal) < 0 || bypassSeeing.IndexOf("Type passwords, card numbers", StringComparison.Ordinal) < 0 || bypassSeeing.IndexOf("needs their OK", StringComparison.Ordinal) >= 0
-                                || bypassPrompt.IndexOf("use the email and password their job gives you", StringComparison.Ordinal) < 0)
-                                throw new Exception("Blackwall mode went wrong: checks " + checksPay + ", ahead " + paysAhead);
-                            checks.Add("PASS Blackwall mode: off, she still checks before paying or booking (\"Book the 7:30 table?\" reaches them) and skips password boxes; on, she never stops to ask, even to buy, send or delete (her ask tool says so too, so \"It's $4.99. Buy it?\" never reaches them), types passwords and card numbers and presses any key");
+                            bool legacyBypassDisabled = !Computer.Bypass && Security.Preset == Security.Trusted && Computer.Allowing(Computer.Prompt) == safePrompt && Computer.Allowing(Computer.Seeing) == safeSeeing;
+                            Security.Pick(Security.Azure);
+                            bool azureProtected = Security.Preset == Security.Azure && !Computer.Bypass
+                                && Security.Locked(Security.Pays) && Security.Locked(Security.Unasked) && Security.Locked(Security.Secrets)
+                                && !Security.On(Security.Pays) && !Security.On(Security.Unasked) && !Security.On(Security.Secrets)
+                                && payJob.Needs("buy") && Computer.Barred("win+r")
+                                && !Computer.Needless("Should I pay $5 for it?") && !Computer.Needless("It's $4.99. Buy it?");
+                            Security.Pick(Security.Trusted);
+                            if (!checksPay || !legacyBypassDisabled || !azureProtected
+                                || safePrompt.IndexOf("Never type passwords", StringComparison.Ordinal) < 0 || safePrompt.IndexOf("Always call ask before you buy or pay for anything.", StringComparison.Ordinal) < 0
+                                || safeSeeing.IndexOf("Never type passwords", StringComparison.Ordinal) < 0 || safeSeeing.IndexOf("stop and ask", StringComparison.Ordinal) < 0
+                                || safePrompt.IndexOf("Bypass all permissions", StringComparison.Ordinal) >= 0 || safeSeeing.IndexOf("Bypass all permissions", StringComparison.Ordinal) >= 0)
+                                throw new Exception("Fixed security safeguards went wrong: payments " + checksPay + ", legacy bypass disabled " + legacyBypassDisabled + ", Azure protected " + azureProtected);
+                            checks.Add("PASS fixed security safeguards: payments and purchases always require confirmation, unrequested actions still ask, credentials remain user-entered, and the legacy bypass flag cannot relax any of them");
                             bool cursorShown = mainframe.JobsStatus == "cursor | Security: Trusted";
-                            ToggleBypass();
-                            bool bypassShown = mainframe.JobsStatus == "cursor | Security: Blackwall" && Computer.Bypass;
-                            ToggleBypass();
+                            Security.Pick(Security.Azure);
+                            bool azureShown = mainframe.JobsStatus == "cursor | Security: Azure" && !Computer.Bypass && !Security.On(Security.Pays) && !Security.On(Security.Unasked) && !Security.On(Security.Secrets);
+                            Security.Pick(Security.Trusted);
                             ToggleCursor();
                             bool quickShown = mainframe.JobsStatus == "- | Security: Trusted" && !UsesCursor;
                             ToggleCursor();
-                            bool blackwallNamed = mainframe.BlackwallStatus == "Security: Trusted | Asks before paying or what you didn't say.";
-                            if (!cursorShown || !bypassShown || !quickShown || !blackwallNamed || Computer.Bypass || !UsesCursor || HeyCapriOn) throw new Exception("The Use her cursor and Security switches went wrong: " + mainframe.JobsStatus + " / " + mainframe.BlackwallStatus);
-                            checks.Add("PASS Settings switches: Use her cursor starts on, and SECURITY sits where Blackwall mode was under HABITS, showing Trusted with \"Asks before paying or what you didn't say.\" under it; the old Blackwall switch picks the Blackwall preset and back");
-                            SecurityChecks(checks, output);
+                            bool azureNamed = mainframe.AzureStatus == "Security: Trusted | Asks before paying or what you didn't say.";
+                            if (!cursorShown || !azureShown || !quickShown || !azureNamed || Computer.Bypass || !UsesCursor || HeyCapriOn) throw new Exception("The Use her cursor and SECURITY switches went wrong: " + mainframe.JobsStatus + " / " + mainframe.AzureStatus);
+                            checks.Add("PASS Settings: Use her cursor starts on, and SECURITY under HABITS shows Trusted with its confirmation summary; Azure remains a safe preset with fixed payment, unrequested-action and credential protections");
+                            SecurityChecks(checks, output);                            SecurityChecks(checks, output);
                             DesktopChecks(checks);
                             KeepAwakeChecks(checks);
                             DesktopWindowChecks(checks);
@@ -39355,33 +39285,28 @@ namespace CapriDesktop
                                     }
                                     if (!threwOut || string.Join(",", lendLog.ToArray()) != "lent,back" || fakeCursor != new Point(500, 500)) throw new Exception("A job that hit a brain error kept their mouse: " + string.Join(",", lendLog.ToArray()) + " at " + fakeCursor);
                                     checks.Add("PASS a job that errors lets go: a rate limit or overload partway through a job still lets go of a held button and hands their mouse back");
-                                    // Under Bypass she types passwords too, and they only ever show as dots.
-                                    bool maskBypassWas = Computer.Bypass;
+                                    // The legacy bypass cannot authorize credential entry or purchases.
+                                    bool legacyBypassWas = Computer.Bypass;
                                     Func<bool> secretWas = Computer.SecretFocus;
                                     Sight loginSight = new Sight { Window = new IntPtr(7), Title = "Sign in", Program = "game" };
                                     loginSight.Targets.Add(new Target { Number = 1, Role = "box", Name = "Password", Secret = true, Line = true, Box = new Rectangle(10, 10, 200, 20) });
-                                    System.Collections.Generic.List<string> maskLabels = new System.Collections.Generic.List<string>();
-                                    string maskRun, maskSteps, buyRun;
-                                    int buyLine = 0;
+                                    string passwordResult, passwordSummary, passwordLabel, buyRun;
+                                    int buyLine = 0, buyActs = 0;
+                                    Func<string, ToolArguments, Sight, string> actWas = Computer.Act;
                                     try
                                     {
                                         Computer.Bypass = true;
                                         Computer.SecretFocus = delegate { return false; };
                                         Computer.Look = delegate { return loginSight; };
                                         Computer.Front = delegate { return new IntPtr(7); };
-                                        Computer.Act = delegate(string name, ToolArguments a, Sight s) { return name == "type" ? "Typed " + Voice.Quote(a.Text) + "." : "Did it."; };
-                                        string[] loginScript = { "type{\"target\": \"1\", \"text\": \"hunter2!!\"}", "done{\"text\": \"Logged you in with hunter2!!.\"}" };
-                                        int loginLine = 0;
-                                        Job login = new Job("log me in with my password hunter2!!");
-                                        login.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return loginScript[Math.Min(loginLine++, loginScript.Length - 1)]; };
-                                        login.Progress = delegate(string status) { lock (maskLabels) maskLabels.Add(status); };
-                                        login.Stepped = delegate(JobStep loginStep) { lock (maskLabels) maskLabels.Add(loginStep.Label); };
-                                        maskRun = login.Run();
-                                        maskSteps = string.Join(" | ", login.Steps.ToArray());
-                                        // Under Blackwall, "It's $4.99. Buy it?" never reaches them: she's told to carry on, and buys it.
+                                        passwordResult = Computer.Do("type", new ToolArguments { Target = "1", Text = "hunter2!!" }, loginSight);
+                                        Computer.Keep("hunter2!!");
+                                        passwordSummary = Hands.Hush("my password is hunter2!!");
+                                        passwordLabel = Computer.Moving("type", Computer.Masked(new ToolArguments { Text = "hunter2!!\n" }), null, false);
                                         Sight hatShop = new Sight { Window = new IntPtr(7), Title = "Cat hat", Program = "shop" };
                                         hatShop.Targets.Add(new Target { Number = 1, Role = "button", Name = "Buy now", Box = new Rectangle(10, 40, 80, 20) });
                                         Computer.Look = delegate { return hatShop; };
+                                        Computer.Act = delegate(string name, ToolArguments a, Sight sight) { buyActs++; return "Clicked it."; };
                                         string[] buyScript = { "ask{\"text\": \"It's $4.99. Buy it?\"}", "click{\"target\": \"1\"}", "done{\"text\": \"Bought the cat hat.\"}" };
                                         Job hatJob = new Job("buy the cat hat");
                                         hatJob.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return buyScript[Math.Min(buyLine++, buyScript.Length - 1)]; };
@@ -39389,19 +39314,17 @@ namespace CapriDesktop
                                     }
                                     finally
                                     {
-                                        Computer.Bypass = maskBypassWas;
+                                        Computer.Bypass = legacyBypassWas;
                                         Computer.SecretFocus = secretWas;
+                                        Computer.Act = actWas;
                                     }
-                                    string maskShown = string.Join(" | ", maskLabels.ToArray());
-                                    string maskSaved = Hands.Hush("my password is hunter2!!");
-                                    string memberTyping = Computer.Moving("type", Computer.Masked(new ToolArguments { Text = "hunter2!!\n" }), null, false);
-                                    if (maskShown.IndexOf("hunter2", StringComparison.Ordinal) >= 0 || maskShown.IndexOf(Computer.Dots, StringComparison.Ordinal) < 0 || maskSteps.IndexOf("hunter2", StringComparison.Ordinal) >= 0 || maskRun != "Logged you in with " + Computer.Dots + "."
-                                        || maskSaved != "my password is " + Computer.Dots || memberTyping != "Typing \"" + Computer.Dots + "\" and pressing Enter")
-                                        throw new Exception("A password she typed under Bypass showed: " + maskShown + " / " + maskSteps + " / " + maskRun + " / " + maskSaved + " / " + memberTyping);
-                                    checks.Add("PASS passwords under Bypass: what she types into a password box shows as dots in her task panel and steps, her summary and chat history, and she says \"the password\" out loud");
-                                    if (buyRun != "Bought the cat hat." || buyLine != 3) throw new Exception("Blackwall asked before buying: " + buyRun + " after " + buyLine + " steps");
-                                    checks.Add("PASS Blackwall buys: a job's \"It's $4.99. Buy it?\" never reaches them, she presses Buy now and says she bought it");
-                                }
+                                    if (Computer.Bypass || passwordResult != "Won't type in a password box. They type passwords themselves." || passwordResult.IndexOf("hunter2", StringComparison.Ordinal) >= 0
+                                        || passwordSummary != "my password is " + Computer.Dots || passwordLabel != "Typing \"" + Computer.Dots + "\" and pressing Enter")
+                                        throw new Exception("Passwords were not kept user-entered and masked: " + passwordResult + " / " + passwordSummary + " / " + passwordLabel);
+                                    checks.Add("PASS credentials stay user-entered: the legacy bypass flag has no effect, password fields refuse automation, and password text is masked in summaries and task labels");
+                                    if (buyRun != "It's $4.99. Buy it?" || buyLine != 1 || buyActs != 0)
+                                        throw new Exception("A purchase question was suppressed or the purchase proceeded without confirmation: " + buyRun + " after " + buyLine + " steps / actions " + buyActs);
+                                    checks.Add("PASS purchase confirmation: a job's \"It's $4.99. Buy it?\" reaches the user and the Buy button is not pressed before approval");
                                 finally
                                 {
                                     Computer.Look = oldLook;
@@ -39692,29 +39615,34 @@ namespace CapriDesktop
                                     if (hiddenText.IndexOf("4111", StringComparison.Ordinal) >= 0 || hiddenText.IndexOf("lachy@example.com", StringComparison.Ordinal) >= 0 || hiddenText.IndexOf("Baker", StringComparison.Ordinal) >= 0 || hiddenText.IndexOf("(value hidden)", StringComparison.Ordinal) < 0 || hiddenText.IndexOf("capri", StringComparison.Ordinal) < 0 || emptyCard.Length == 0 || emptyCard.IndexOf("(value hidden)", StringComparison.Ordinal) >= 0 || emptyCard.IndexOf(" = ", StringComparison.Ordinal) >= 0 || emptyPersonal.Length == 0 || emptyPersonal.IndexOf("(value hidden)", StringComparison.Ordinal) >= 0 || emptyPersonal.IndexOf(" = ", StringComparison.Ordinal) >= 0)
                                         throw new Exception("Hidden personal values went wrong: " + hiddenText);
                                     checks.Add("PASS hidden values: a card number, an email box and a street address reach her brain as (value hidden), an empty card or email box still reads as empty, and an ordinary box still shows what it holds");
-                                    // Blackwall mode: the card is theirs to give, so she types it and asks for one in her own words.
-                                    bool cardBypassWas = Computer.Bypass;
-                                    int blackwallActs = 0;
-                                    string blackwallCard, blackwallAsk;
+                                    // Legacy bypass writes cannot authorize card entry; the user supplies card details.
+                                    bool legacyCardBypassWas = Computer.Bypass;
+                                    int cardActs = 0;
+                                    string cardResult, cardAsk;
+                                    Func<string, ToolArguments, Sight, string> cardActWas = Computer.Act;
                                     try
                                     {
                                         Computer.Bypass = true;
                                         for (int i = 0; i < 3; i++) paySight.Targets[i].Value = null;
                                         Computer.Look = delegate { return paySight; };
-                                        Computer.Act = delegate(string name, ToolArguments a, Sight s) { blackwallActs++; return "Typed it."; };
+                                        Computer.Act = delegate(string name, ToolArguments a, Sight sight) { cardActs++; return "Typed it."; };
                                         string[] cardScript = { "type{\"target\": \"1\", \"text\": \"4111 1111 1111 1111\"}", "done{\"text\": \"Put your card in.\"}" };
                                         int cardLine = 0;
                                         Job carding = new Job("pay for the flight with my card 4111 1111 1111 1111");
                                         carding.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return cardScript[Math.Min(cardLine++, cardScript.Length - 1)]; };
-                                        blackwallCard = carding.Run();
+                                        cardResult = carding.Run();
                                         Job cardAsking = new Job("book the cheapest flight from Sydney to Melbourne on 14 November for Alex Chen");
                                         cardAsking.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return "ask{\"text\": \"What's your card number?\"}"; };
-                                        blackwallAsk = cardAsking.Run();
+                                        cardAsk = cardAsking.Run();
                                     }
-                                    finally { Computer.Bypass = cardBypassWas; }
-                                    if (blackwallActs != 1 || blackwallCard != "Put your card in." || blackwallAsk != "What's your card number?")
-                                        throw new Exception("Cards under Blackwall mode went wrong: " + blackwallActs + " / " + blackwallCard + " / " + blackwallAsk);
-                                    checks.Add("PASS cards under Blackwall mode: she types the card number their job gives her, and asks for a card in her own words");
+                                    finally
+                                    {
+                                        Computer.Bypass = legacyCardBypassWas;
+                                        Computer.Act = cardActWas;
+                                    }
+                                    if (Computer.Bypass || cardActs != 0 || cardResult.IndexOf("I don't type card numbers", StringComparison.Ordinal) < 0 || cardAsk != Computer.PayYourself)
+                                        throw new Exception("Card details were not kept user-entered: " + cardActs + " / " + cardResult + " / " + cardAsk);
+                                    checks.Add("PASS card details stay user-entered: legacy bypass writes cannot type a card number, and requests for card details hand the page back to the user");
                                     Sight detailsSight = new Sight { Window = new IntPtr(7), Title = "Passenger details - SkyHop", Program = "chrome" };
                                     detailsSight.Words.Add("JQ 501 $89, Sydney to Melbourne, 14 Nov");
                                     detailsSight.Words.Add("Who's flying?");

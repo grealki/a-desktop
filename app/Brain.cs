@@ -363,10 +363,9 @@ namespace CapriDesktop
         internal readonly string Kind;
         internal readonly int Port;
         internal readonly string Host;
-        internal readonly bool Code;
         private volatile string model;
-        internal string Model { get { return Code ? Brain.Fastest : model; } set { model = Code ? Brain.Fastest : value; } }
-        internal Cloud(string key, string model) { Code = false; Key = key; Kind = KindOf(Key); Model = model; }
+        internal string Model { get { return model; } set { model = value; } }
+        internal Cloud(string key, string model) { Key = key; Kind = KindOf(Key); Model = model; }
         internal Cloud(int port, string model, string address = null) { Host = Brain.LocalAddress(address) ?? Brain.LocalHost(port); Port = new Uri(Host).Port; Kind = "local"; Model = model; }
         internal bool Claude { get { return Kind == "anthropic"; } }
         // Their own Claude or ChatGPT plan, through Claude Code or Codex on their PC.
@@ -3123,8 +3122,6 @@ namespace CapriDesktop
         }
 
         private string CurrentModel { get { Cloud remote = Remote; return remote != null ? remote.Model : Model; } }
-        private bool CurrentCode { get { Cloud remote = Remote; return remote != null && remote.Code; } }
-
         private ThinkingPick Picked(string kind, string model, bool code)
         {
             ThinkingPick[] picks = Picks;
@@ -3133,7 +3130,7 @@ namespace CapriDesktop
             return null;
         }
 
-        private ThinkingPick CurrentPick { get { return Picked(CurrentKind, CurrentModel, CurrentCode); } }
+        private ThinkingPick CurrentPick { get { return Picked(CurrentKind, CurrentModel, false); } }
 
         private static int Usable(ThinkingPick pick, string kind, string model)
         {
@@ -3144,9 +3141,9 @@ namespace CapriDesktop
 
         internal string ThinkingSource { get { return CurrentKind + "|" + CurrentModel; } }
         internal string ThinkingExtra { get { ThinkingPick pick = CurrentPick; return pick == null ? null : pick.Extra; } }
-        internal bool ThinkingOpen { get { return ThinkingLevels.Closed(CurrentKind, CurrentCode) == null && !string.IsNullOrEmpty(CurrentModel); } }
+        internal bool ThinkingOpen { get { return ThinkingLevels.Closed(CurrentKind, false) == null && !string.IsNullOrEmpty(CurrentModel); } }
         internal int ThinkingLevel { get { return Usable(CurrentPick, CurrentKind, CurrentModel); } }
-        internal string ThinkingWhy(int level) { return LevelWhy(CurrentKind, CurrentModel, level, CurrentCode); }
+        internal string ThinkingWhy(int level) { return LevelWhy(CurrentKind, CurrentModel, level, false); }
 
         // Tells the Mainframe when a model turns down a level, since that happens partway through a chat.
         internal Action ThinkingChanged;
@@ -3205,7 +3202,7 @@ namespace CapriDesktop
                 bool brief = remote.Kind == "nvidia" && remote.Model == "google/gemma-4-31b-it";
                 bool screen = (parts != null || unhurried) && remote.Kind == "nvidia";
                 bool super = screen && (!job || unhurried) && !routing && remote.Model == "nvidia/nemotron-3.5-super-vl-120b-a12b";
-                ThinkingPick pick = plain ? null : Picked(remote.Kind, remote.Model, remote.Code);
+                ThinkingPick pick = plain ? null : Picked(remote.Kind, remote.Model, false);
                 int level = Usable(pick, remote.Kind, remote.Model);
                 int headroom = unhurried ? 8000 : 2000;
                 int replyRoom = ThinkingLevels.Room(level, ReplyLimit(headroom, job || routing));
@@ -3546,7 +3543,7 @@ namespace CapriDesktop
                 Fallbacks = fallback ? "default" : null
             };
             ClaudeOutput usualOutput = body.Output;
-            ThinkingPick pick = plain || brief > 0 ? null : Picked(remote.Kind, model, remote.Code);
+            ThinkingPick pick = plain || brief > 0 ? null : Picked(remote.Kind, model, false);
             int level = Usable(pick, remote.Kind, model);
             if (level != ThinkingLevels.Default) ThinkingLevels.Apply(body, level);
             if (pick != null) body.Extra = pick.Extra;
@@ -3596,7 +3593,7 @@ namespace CapriDesktop
 
         // Claude 5.5 and the other toolset models drive the mouse and keyboard from screenshots themselves.
         // Her fast hands can ask the brain they picked, or Sonnet when that's Haiku (Lachy, 31 Oct: about 8 cents an ask).
-        internal bool Advises { get { Cloud remote = Remote; return remote != null && !remote.Code && Drives && !noFastest && noAdvisor != remote.Key + remote.Model; } }
+        internal bool Advises { get { Cloud remote = Remote; return remote != null && Drives && !noFastest && noAdvisor != remote.Key + remote.Model; } }
         private static string Adviser(Cloud remote) { return remote.Model.StartsWith("claude-haiku", StringComparison.Ordinal) ? Stronger : remote.Model; }
         // The key and brain that turned the advisor down: another pair may well have it.
         private volatile string noAdvisor;
@@ -3637,7 +3634,7 @@ namespace CapriDesktop
             if (remote == null || !remote.Claude) throw new BrainException(Offline);
             string model = fast && !noFastest ? Fastest : remote.Model;
             // A job that's asked the advisor has to keep offering it, or the request is refused.
-            bool answered = Regex.IsMatch(messages, "\"type\"\\s*:\\s*\"(advisor_tool_result|server_tool_use)\""), advising = !remote.Code && (answered || (fast && model == Fastest && Advises));
+            bool answered = Regex.IsMatch(messages, "\"type\"\\s*:\\s*\"(advisor_tool_result|server_tool_use)\""), advising = answered || (fast && model == Fastest && Advises);
             bool fallback = Regex.IsMatch(model, @"^claude-(opus-5|sonnet-5-5|fable-5-1)");
             // Her hands keep only the newest three pictures, which changes earlier turns. These models bind each thinking block to
             // the turns before it, and accounts made since 31 August 2026 reject a changed one with a 400, so it's dropped instead
