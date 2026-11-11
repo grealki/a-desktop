@@ -1252,9 +1252,9 @@ namespace CapriDesktop
         // Azure memory has three explicit modes. Legacy Capri preferences no longer turn automatic logging on.
         internal enum MemoryMode { Off = 0, Controlled = 1, Full = 2 }
         private static readonly object memoryModeLock = new object();
-        private static int memoryModeValue = -1;
+        private static volatile int memoryModeValue = -1;
         // Legacy smoke-test callers can temporarily suppress memory without changing the user's saved mode.
-        private static int keepingOverride = -1;
+        private static volatile int keepingOverride = -1;
         private static string MemoryModeFile
         {
             get
@@ -1333,11 +1333,14 @@ namespace CapriDesktop
         internal static string TranscriptPath;
         internal static string MemoriesPath;
         // Compatibility with old callers. The persisted legacy bool is intentionally ignored.
-        internal static bool MemoryAvailable { get { return keepingOverride != 0 && CurrentMemoryMode != MemoryMode.Off; } }
+        internal static bool MemoryAvailable
+        {
+            get { int forced = keepingOverride; return forced == 0 ? false : forced == 1 || CurrentMemoryMode != MemoryMode.Off; }
+        }
         internal static bool Keeping
         {
-            get { return keepingOverride == 0 ? false : CurrentMemoryMode == MemoryMode.Full; }
-            set { keepingOverride = value ? -1 : 0; }
+            get { int forced = keepingOverride; return forced >= 0 ? forced == 1 : CurrentMemoryMode == MemoryMode.Full; }
+            set { keepingOverride = value ? 1 : 0; }
         }
         internal static volatile Brain Keeper;
         // Mac and Linux turn this off: their screenshots show her and her bubble, so a glance can take her for part of their
