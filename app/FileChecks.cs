@@ -77,9 +77,9 @@ namespace CapriDesktop
                 double took = timed.Elapsed.TotalSeconds;
                 if (took < 2 || panel.Drawn.Count < 8) throw new Exception("The opening didn't play: " + took + " s, " + panel.Drawn.Count + " frames.");
                 for (int i = 1; i < panel.Drawn.Count; i++) if (panel.Drawn[i] < panel.Drawn[i - 1]) throw new Exception("The opening went backwards at " + panel.Drawn[i] + ".");
-                if (panel.FileShown != "personality.md" || !panel.Draft.Contains("You are Capri") || !panel.PageWindow.Visible) throw new Exception("The file editor didn't open on personality.md: " + panel.FileShown);
+                if (panel.FileShown != "personality.md" || !panel.Draft.Contains("You are Azure, also known as Azurewrath") || !panel.PageWindow.Visible) throw new Exception("The file editor didn't open on personality.md: " + panel.FileShown);
                 if (panel.PageBox.Width < 640 * panel.UiScale || panel.BodyPixelsHigh < 400 * panel.UiScale) throw new Exception("The page is too small to edit in: " + panel.PageBox);
-                if (panel.BodyFontName != "Share Tech Mono" || Look.Face(FileEditor.TitleFace) == null || Look.Face(FileEditor.TitleFace).Name != "Capri Mainframe") throw new Exception("The file editor's fonts didn't load: " + panel.BodyFontName);
+                if (panel.BodyFontName != "Share Tech Mono" || Look.Face(FileEditor.TitleFace) == null || Look.Face(FileEditor.TitleFace).Name != "Capri Mainframe") throw new Exception("The Azure file editor's fonts didn't load: " + panel.BodyFontName);
                 checks.Add("PASS file editor opens from her right-click menu on personality.md, plays its opening forwards in " + took.ToString("F1") + " s (first frame after " + clicked.ToString("F2") + " s, " + panel.Drawn.Count + " frames drawn), with a page of " + panel.PageBox.Width + " x " + panel.PageBox.Height + " and her own fonts");
 
                 // Her safety lines are never in what it shows, and nothing it does changes them.
