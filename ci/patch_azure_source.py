@@ -533,7 +533,8 @@ capri_replace("        // The old Blackwall bypass flag is migration-only; legac
               "legacy bypass migration comment");
 capri_replace("                // screen_data in Blackwall too.", "                // screen_data under the Azure preset too.", "memory test comment");
 capri_replace("Blackwall's name included", "Azure's name included", "colour test label");
-if (s.split("SECURITY's Blackwall preset turns it on").length - 1 !== 2) throw new Error("Expected two obsolete wake-word comments.");
+if s.count("SECURITY's Blackwall preset turns it on") != 2:
+    raise RuntimeError("Expected two obsolete wake-word comments.")
 s = s.replace("SECURITY's Blackwall preset turns it on", "SECURITY's Azure preset turns it on");
 capri_replace("{ \"what's Blackwall\", \"Security\" }", "{ \"what's the Azure preset\", \"Security\" }", "self knowledge query");
 capri_replace("// Nothing in code screens what they say or rewrites what she says: her brain follows her safety lines, Blackwall on or off.",
