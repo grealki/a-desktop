@@ -1,0 +1,36 @@
+name: Windows full smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+concurrency:
+  group: windows-full-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  windows-full-smoke:
+    runs-on: windows-2025
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - name: Prepare full-size desktop
+        shell: powershell
+        run: ./ci/wide-screen.ps1
+      - name: Build and run complete smoke suite
+        shell: pwsh
+        run: ./ci/build-windows.ps1 -OutputDirectory out/windows -SmokeTest -SmokeSeconds 1800
+      - name: Upload full smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-full-smoke
+          path: |
+            out/windows/smoke
+            out/windows/Capri.exe
+            out/windows/Capri-Setup.exe
+          if-no-files-found: warn
