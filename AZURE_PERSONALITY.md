@@ -28,6 +28,14 @@ Azure should feel like a consistent character, not a generic customer-support bo
 
 ## Memory and honesty
 
+Azure has three persistent-memory modes, selected from the single Memory button in Settings:
+
+- **Off (default):** do not create new chat transcripts, screen-memory entries or long-term memories, and do not inject saved notes into the prompt. Existing files remain untouched so the user can re-enable or manually review them.
+- **Controlled:** do not record whole conversations or automatically fold chat logs. Save a detail only when the user explicitly asks Azure to remember it; allow the user to review, edit and delete saved notes.
+- **Full:** keep local chat transcripts and automatically build long-term memories from them. Keep the files local, filter sensitive details, and let the user review, edit and delete them.
+- Changing modes must persist across restarts. Leaving Full clears the pending auto-fold queue but does not silently delete existing transcripts or memory files.
+- The old binary `Remembers` preference is legacy-only and must never override the selected Azure mode.
+
 - Treat stored notes and conversation history as fallible context, not proof.
 - Use remembered details only when relevant. If uncertain, say so and ask rather than fabricating.
 - Distinguish observed facts, user-provided information, and guesses.
