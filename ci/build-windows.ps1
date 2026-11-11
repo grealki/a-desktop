@@ -29,7 +29,9 @@ if ($Store) { Write-Output "Built $app for the Microsoft Store"; return }
 & $compiler ($shared + @(('/out:' + $setup), '/reference:Microsoft.CSharp.dll', '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll', ('/resource:' + $app + ',Capri.App.exe'), ('/resource:' + $icon + ',Capri.Chip.ico'), ('/resource:' + (Join-Path $root 'assets\chip.png') + ',Capri.Chip.png'), (Join-Path $root 'app\Setup.cs'), (Join-Path $root 'app\Neon.cs'), (Join-Path $root 'app\Notice.cs'), (Join-Path $root 'app\VoicePack.cs'), (Join-Path $root 'app\Startup.cs'), (Join-Path $root 'app\AssemblyInfo.cs')))
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 Write-Output "Built $app and $setup"
-& (Join-Path $PSScriptRoot 'test-azure-memory.ps1') -Executable $app
+$memoryTest = Join-Path $PSScriptRoot 'test-azure-memory.ps1'
+$windowsPowerShell = Join-Path $env:WINDIR 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+& $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $memoryTest -Executable $app
 if ($LASTEXITCODE -ne 0) { throw 'Azure memory mode tests failed.' }
 if (-not $SmokeTest) { return }
 $runtime = Join-Path $out 'smoke\runtime'
