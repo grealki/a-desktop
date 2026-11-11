@@ -929,8 +929,8 @@ namespace CapriDesktop
             startup = Switch("Start with Windows", c, 680, delegate { if (!syncing) capri.ToggleStartup(); });
             discord = Switch("Show on Discord", c, 708, delegate { if (!syncing) capri.ToggleDiscord(); });
             cursor = Switch("Use her cursor", c, 736, delegate { if (!syncing) capri.ToggleCursor(); });
-            remembering = Switch("Remember our chats", c, 764, delegate { if (!syncing) capri.ToggleRemembering(); });
-            remembering.AccessibleName = "Remember our chats. She keeps daily transcripts and memories.md on this PC, never uploaded";
+            remembering = Switch("Memory: Off", c, 764, delegate { if (!syncing) { Brain.CycleMemoryMode(); Sync(); } });
+            remembering.AccessibleName = "Azure memory mode. Click to cycle between Off, Controlled and Full. Controlled saves only details explicitly asked to be remembered; Full also keeps local chat transcripts and builds memories automatically.";
             // SECURITY took Azure mode's place (Lachy, 29 Oct): its button opens her SECURITY window, and the line under it
             // says what the preset does. Azure mode is its Azure preset now.
             security = Make("Security: " + Security.PresetName, 28 + c, 795, 328, 22, delegate { OpenSecurity(); });
@@ -2845,7 +2845,9 @@ namespace CapriDesktop
             watchMemoryName.Text = WatchLineNames[watchMemory.Value];
             stayOnModel.Checked = capri.StayOnModel;
             huskVerbosity.Checked = capri.HuskVerbosity;
-            remembering.Checked = capri.Remembers;
+            remembering.Checked = Brain.CurrentMemoryMode != Brain.MemoryMode.Off;
+            remembering.Text = "Memory: " + Brain.MemoryModeLabel;
+            remembering.AccessibleName = "Azure memory mode: " + Brain.MemoryModeLabel + ". Click to cycle Off, Controlled and Full. Full stores local chat transcripts and automatically builds memories; Controlled stores only explicitly requested details.";
             keepAwake.Checked = capri.KeepAwake;
             hideFullScreen.Checked = capri.HideFullScreen;
             playerFullScreen.Checked = capri.PlayerFullScreen;
@@ -3002,9 +3004,9 @@ namespace CapriDesktop
             }
         }
 
-        internal bool RemembersShown { get { return remembering.Checked; } }
+        internal bool RemembersShown { get { return Brain.CurrentMemoryMode != Brain.MemoryMode.Off; } }
 
-        internal void FlipRemembering() { remembering.Checked = !remembering.Checked; }
+        internal void FlipRemembering() { Brain.CycleMemoryMode(); Sync(); }
 
         internal bool CareShown(CareKind kind) { return careToggles[(int)kind].Checked; }
 
