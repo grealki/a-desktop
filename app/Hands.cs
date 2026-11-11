@@ -253,10 +253,12 @@ namespace CapriDesktop
         private static bool Kept(int bits) { return (bits & 0x3FF) != 0x3FF; }
 
         // Their saved toggles, or Trusted for anything unreadable. "Hey Capri" stays where it lives.
-        internal static void Load(string saved, bool wake = false)
+        internal static void Load(string saved, bool? wake = null)
         {
             int bits = 0;
-            if (saved == null || saved.Length < Wake || saved.Length > Wake + 2 || saved.Trim('0', '1').Length > 0) bits = Masks[Trusted];
+            bool valid = saved != null && saved.Length >= Wake && saved.Length <= Wake + 2 && saved.Trim('0', '1').Length == 0;
+            bool wakeOn = wake.HasValue ? wake.Value : valid && On(Wake);
+            if (!valid) bits = Masks[Trusted];
             else
             {
                 for (int i = 0; i < Wake; i++) if (saved[i] == '1') bits |= 1 << i;
@@ -266,7 +268,7 @@ namespace CapriDesktop
             bool legacyBlackwall = (bits & 0x3FF) == 0x3FF;
             bits &= ~RestrictedMask; // Migrate legacy bypass saves without restoring their permission bypass.
             if (legacyBlackwall) bits |= 1 << Personal;
-            lock (gate) mask = bits | (wake ? 1 << Wake : 0);
+            lock (gate) mask = bits | (wakeOn ? 1 << Wake : 0);
         }
 
         // Which toggle one of her tools needs, or -1 for one that never asks: looking at the screen, checking what's open, what's
