@@ -96,11 +96,11 @@ try {
     $keeping.SetValue($null, $true, $null)
     & $assertMode 'Off' $false $false
     & $set $off
-    if (-not $cycleMode.Invoke($null)) { throw 'Could not cycle Off to Controlled.' }
+    if (-not $cycleMode.Invoke($null, [object[]]@())) { throw 'Could not cycle Off to Controlled.' }
     & $assertMode 'Controlled' $true $false
-    if (-not $cycleMode.Invoke($null)) { throw 'Could not cycle Controlled to Full.' }
+    if (-not $cycleMode.Invoke($null, [object[]]@())) { throw 'Could not cycle Controlled to Full.' }
     & $assertMode 'Full' $true $true
-    if (-not $cycleMode.Invoke($null)) { throw 'Could not cycle Full to Off.' }
+    if (-not $cycleMode.Invoke($null, [object[]]@())) { throw 'Could not cycle Full to Off.' }
     & $assertMode 'Off' $false $false
 
     Write-Output 'PASS Azure memory modes: Off blocks saves and reads; Controlled stores explicit notes only; Full records local transcripts; mode persists; legacy bool cannot override it; button cycles all three.'
