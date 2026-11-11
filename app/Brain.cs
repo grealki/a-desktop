@@ -3977,7 +3977,7 @@ namespace CapriDesktop
             lock (seeing)
             {
                 sightings.Clear();
-                if (saved.Seen != null) foreach (Sighting sighting in saved.Seen) if (sighting != null && !string.IsNullOrEmpty(sighting.Saw) && sighting.At != null) sightings.Add(sighting);
+                if (Keeping && saved.Seen != null) foreach (Sighting sighting in saved.Seen) if (sighting != null && !string.IsNullOrEmpty(sighting.Saw) && sighting.At != null) sightings.Add(sighting);
             }
         }
 
