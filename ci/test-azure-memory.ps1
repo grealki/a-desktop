@@ -76,7 +76,7 @@ try {
     & $assertMode 'Controlled' $true $false
     $saved = $note.Invoke($null, [object[]]@('likes puzzle games'))
     if (-not (Test-Path -LiteralPath (Join-Path $testRoot 'me.md'))) { throw "Controlled mode did not save an explicit note: $saved" }
-    $transcribe.Invoke($null, [object[]]@('You', 'this should not be logged')) | Out-Null
+    $transcribe.Invoke($null, [object[]]@('You', 'this should not be logged', $true)) | Out-Null
     if (Test-Path -LiteralPath (Join-Path $testRoot 'transcripts')) { throw 'Controlled mode created automatic transcripts.' }
     if (-not ([string]$remembered.Invoke($null, @())).Contains('Likes puzzle games')) { throw 'Controlled mode did not expose the explicitly saved note.' }
 
