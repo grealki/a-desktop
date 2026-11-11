@@ -402,7 +402,7 @@ namespace CapriDesktop
             new Topic("Send, post and delete what you asked for", "send post and delete what you asked for|send permission|delete permission",
                 "Mainframe > Settings > HABITS > Security > Send, post and delete what you asked for covers those steps in your request. On she carries them out without checking again; off she asks even when you requested that step.", "Hands.cs", "Send, post and delete what you asked for"),
             new Topic("Pay, buy and book", "pay buy and book|payment permission|purchase permission",
-                "Mainframe > Settings > HABITS > Security > Pay, buy and book covers purchases, payments and bookings during jobs. On she does them without checking again; off she asks before that step.", "Hands.cs", "Pay, buy and book"),
+                "Mainframe > Settings > HABITS > Security > Payments and purchases (always confirm) covers purchases and bookings. Payment confirmation is always required, even when the action is requested.", "Hands.cs", "Payments and purchases (always confirm)"),
             new Topic("Things your request didn't mention", "things your request didnt mention|unasked steps|extra steps permission",
                 "Mainframe > Settings > HABITS > Security > Things your request didn't mention controls extra steps needed by a job. Off she asks before unmentioned sends, posts, deletions, installs or purchases and keys that can run things, such as Win + R; on she carries on.", "Hands.cs", "Things your request didn't mention"),
             new Topic("Type passwords and card numbers", "type passwords and card numbers|password permission|card numbers permission",

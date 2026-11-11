@@ -127,7 +127,7 @@ namespace CapriDesktop
             "On: she does it as soon as you ask. Off: she asks first.",
             "On: she clicks and types in your apps. Off: she asks first.",
             "On: she sends it without checking again. Off: she asks first.",
-            "Always: she asks you to confirm before any payment, purchase or booking.",
+            "Always: she asks before payments, purchases or bookings.",
             "Always: she asks before actions that weren't included in your request.",
             "Always: you enter passwords and card details yourself.",
             "On: she listens on this PC for her name. Off: she doesn't.",
@@ -209,7 +209,7 @@ namespace CapriDesktop
         {
             get
             {
-                int bits = Mask, counted = (Has(Wake) ? 0x7FF : 0x3FF) | (Has(Friends) ? 1 << Friends : 0) | (Has(Personal) ? 1 << Personal : 0);
+                int bits = Mask, counted = (Has(Wake) ? 0x7FF : 0x3FF) | (Has(Friends) ? 1 << Friends : 0) | (1 << Personal);
                 for (int i = 0; i < Masks.Length; i++) if ((bits & counted) == (Masks[i] & counted)) return i;
                 return Custom;
             }
