@@ -1,6 +1,11 @@
 name: Windows full smoke
 
 on:
+  push:
+    branches:
+      - azure-dev
+    paths:
+      - .github/workflows/windows-full-smoke.yml
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * *'
