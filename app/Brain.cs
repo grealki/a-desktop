@@ -774,7 +774,7 @@ namespace CapriDesktop
         internal static string PersonalityPath;
         internal const string PersonalityHead =
             "<!--\n" +
-            "personality.md: who Capri is and how she talks. Rewrite any of it and save, and her next reply uses it. No restart.\n" +
+            "personality.md: who Azure is and how she talks. Rewrite any of it and save, and her next reply uses it. No restart.\n" +
             "Her safety lines aren't in here. They're in her code and always come after this, so nothing in here changes them.\n" +
             "Notes between these marks never reach her brain, and blank lines don't matter.\n" +
             "A very long personality makes small brains slower to reply.\n" +
@@ -1364,7 +1364,7 @@ namespace CapriDesktop
 
         private static string QueuePath { get { string folder = TranscriptPath; return folder == null ? null : Path.Combine(folder, "unfolded.txt"); } }
 
-        // Who is "You" or "Capri" (with " (voice)" in voice chat), or null for something she did, like a glance or a job. A line
+        // Who is "You" or "Azure" (with " (voice)" in voice chat), or null for something she did, like a glance or a job. A line
         // that isn't folded stays out of memories.md.
         internal static void Transcribe(string who, string text, bool folded = true)
         {
@@ -3157,7 +3157,7 @@ namespace CapriDesktop
         internal void Followed(string said)
         {
             lock (gate) { history.Add(new ChatMessage("assistant", said)); Kept(); }
-            Transcribe("Capri", said);
+            Transcribe("Azure", said);
         }
 
         internal string Step(string system, string user, string tools, string claudeTools, string listing, List<KeyValuePair<string, ToolArguments>> calls, int budget = 400)
