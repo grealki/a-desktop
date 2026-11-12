@@ -471,17 +471,12 @@ namespace CapriDesktop
             Clip clipWas = clip;
             Ledge seatWas = seat;
             bool ridingWas = riding, draggingWas = dragging, walkingWas = walking, fallingWas = falling, busyWas = frontBusy;
+            string speechWas = speech;
             try
             {
-                // This renderer check runs after other smoke sections in the same process. Start from a genuinely
-                // quiet state so an old bubble, typing box, note or talk state cannot mask the Power saver frame rate.
-                talkState = TalkState.Off;
-                speech = null;
-                if (box.Visible) box.Hide();
-                if (typer.Visible) typer.Hide();
-                notes.Clear();
                 seat = null;
                 riding = dragging = walking = falling = frontBusy = false;
+                speech = null;
                 preferences.Motion = false;
                 veiled = false;
                 veilUntil = -1;
@@ -713,12 +708,7 @@ namespace CapriDesktop
                 walking = walkingWas;
                 falling = fallingWas;
                 frontBusy = busyWas;
-                // Leave the smoke process clean for the next section; none of these transient UI states is part of the art test.
-                talkState = TalkState.Off;
-                speech = null;
-                if (box.Visible) box.Hide();
-                if (typer.Visible) typer.Hide();
-                notes.Clear();
+                speech = speechWas;
                 Play(clipWas);
             }
         }
@@ -730,15 +720,28 @@ namespace CapriDesktop
             Mods mods = ModList;
             bool motionWas = preferences.Motion, leftWas = facingLeft, veiledWas = veiled;
             double veilWas = veilUntil, leanWas = leanAngle, glitchWas = nextGlitch;
-            int saverWas = preferences.PowerSaver;
+            int saverWas = preferences.PowerSaver, fpsWas = preferences.PerchFps;
             Clip clipWas = clip;
             Ledge seatWas = seat;
             bool ridingWas = riding, draggingWas = dragging, walkingWas = walking, fallingWas = falling, busyWas = frontBusy;
+            bool dockedWas = docked, exploringWas = exploring, boxWas = box.Visible, typerWas = typer.Visible;
+            TalkState talkWas = talkState;
+            double dizzyFromWas = dizzyFrom, dizzyUntilWas = dizzyUntil, dizzyGlitchWas = dizzyGlitchAt, sulkWas = sulkSince;
+            Action outroWas = outro;
+            List<Note> notesWas = new List<Note>(notes);
             string speechWas = speech;
             try
             {
                 seat = null;
                 riding = dragging = walking = falling = frontBusy = false;
+                docked = exploring = false;
+                dizzyFrom = dizzyUntil = dizzyGlitchAt = -1;
+                sulkSince = -1;
+                outro = null;
+                talkState = TalkState.Off;
+                box.Visible = typer.Visible = false;
+                notes.Clear();
+                preferences.PerchFps = 30;
                 speech = null;
                 preferences.Motion = false;
                 veiled = false;
@@ -860,8 +863,7 @@ namespace CapriDesktop
                 preferences.PowerSaver = 2;
                 Play(idle);
                 double restAt = clock.Elapsed.TotalSeconds;
-                if (FrameInterval(restAt) != 61 || !Resting(restAt))
-                    throw new Exception("Standing still, she didn't rest at Power saver's pace: interval " + FrameInterval(restAt) + ", resting " + Resting(restAt) + ", saving " + Saving + ", quiet " + Quiet(restAt) + ", standing " + StandingStill + ", talk " + talkState + ", bubble " + box.Visible + ", typing " + typer.Visible + ", notes " + notes.Count + ".");
+                if (FrameInterval(restAt) != 61 || !Resting(restAt)) throw new Exception("Standing still, she didn't rest at Power saver's pace.");
                 clipStart = restAt - 1.01;
                 int heldA = Advance(restAt), heldB = Advance(restAt + 1.0 / 30);
                 if (heldA != heldB) throw new Exception("Resting, her loop didn't hold its frames.");
@@ -1013,6 +1015,7 @@ namespace CapriDesktop
                 foreach (Mod left in mods.All.ToArray()) if (left.Skin || left.File.Colors != null) mods.Remove(left);
                 preferences.Motion = motionWas;
                 preferences.PowerSaver = saverWas;
+                preferences.PerchFps = fpsWas;
                 facingLeft = leftWas;
                 veiled = veiledWas;
                 veilUntil = veilWas;
@@ -1025,6 +1028,18 @@ namespace CapriDesktop
                 walking = walkingWas;
                 falling = fallingWas;
                 frontBusy = busyWas;
+                docked = dockedWas;
+                exploring = exploringWas;
+                dizzyFrom = dizzyFromWas;
+                dizzyUntil = dizzyUntilWas;
+                dizzyGlitchAt = dizzyGlitchWas;
+                sulkSince = sulkWas;
+                outro = outroWas;
+                talkState = talkWas;
+                box.Visible = boxWas;
+                typer.Visible = typerWas;
+                notes.Clear();
+                notes.AddRange(notesWas);
                 speech = speechWas;
                 Play(clipWas);
             }
