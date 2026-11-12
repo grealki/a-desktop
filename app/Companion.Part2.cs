@@ -16445,35 +16445,41 @@ namespace CapriDesktop
                                     // The legacy bypass cannot authorize credential entry or purchases.
                                     bool legacyBypassWas = Computer.Bypass;
                                     Func<bool> secretWas = Computer.SecretFocus;
-                                    Sight loginSight = new Sight { Window = new IntPtr(7), Title = "Sign in", Program = "game" };
-                                    loginSight.Targets.Add(new Target { Number = 1, Role = "box", Name = "Password", Secret = true, Line = true, Box = new Rectangle(10, 10, 200, 20) });
                                     string passwordResult, passwordSummary, passwordLabel, buyRun;
                                     int buyLine = 0, buyActs = 0;
-                                    Func<string, ToolArguments, Sight, string> actWas = Computer.Act;
-                                    try
+                                    using (System.Windows.Forms.Form credentialWindow = new System.Windows.Forms.Form())
                                     {
-                                        Computer.Bypass = true;
-                                        Computer.SecretFocus = delegate { return false; };
-                                        Computer.Look = delegate { return loginSight; };
-                                        Computer.Front = delegate { return new IntPtr(7); };
-                                        passwordResult = Computer.Do("type", new ToolArguments { Target = "1", Text = "hunter2!!" }, loginSight);
-                                        Computer.Keep("hunter2!!");
-                                        passwordSummary = Hands.Hush("my password is hunter2!!");
-                                        passwordLabel = Computer.Moving("type", Computer.Masked(new ToolArguments { Text = "hunter2!!\n" }), null, false);
-                                        Sight hatShop = new Sight { Window = new IntPtr(7), Title = "Cat hat", Program = "shop" };
-                                        hatShop.Targets.Add(new Target { Number = 1, Role = "button", Name = "Buy now", Box = new Rectangle(10, 40, 80, 20) });
-                                        Computer.Look = delegate { return hatShop; };
-                                        Computer.Act = delegate(string name, ToolArguments a, Sight sight) { buyActs++; return "Clicked it."; };
-                                        string[] buyScript = { "ask{\"text\": \"It's $4.99. Buy it?\"}", "click{\"target\": \"1\"}", "done{\"text\": \"Bought the cat hat.\"}" };
-                                        Job hatJob = new Job("buy the cat hat");
-                                        hatJob.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return buyScript[Math.Min(buyLine++, buyScript.Length - 1)]; };
-                                        buyRun = hatJob.Run();
-                                    }
-                                    finally
-                                    {
-                                        Computer.Bypass = legacyBypassWas;
-                                        Computer.SecretFocus = secretWas;
-                                        Computer.Act = actWas;
+                                        // Computer.Do now verifies a real HWND. Give this isolated test a real, hidden window
+                                        // instead of IntPtr(7), which Windows correctly rejects as an invalid window.
+                                        IntPtr credentialHandle = credentialWindow.Handle;
+                                        Sight loginSight = new Sight { Window = credentialHandle, Title = "Sign in", Program = "game" };
+                                        loginSight.Targets.Add(new Target { Number = 1, Role = "box", Name = "Password", Secret = true, Line = true, Box = new Rectangle(10, 10, 200, 20) });
+                                        Func<string, ToolArguments, Sight, string> actWas = Computer.Act;
+                                        try
+                                        {
+                                            Computer.Bypass = true;
+                                            Computer.SecretFocus = delegate { return false; };
+                                            Computer.Look = delegate { return loginSight; };
+                                            Computer.Front = delegate { return credentialHandle; };
+                                            passwordResult = Computer.Do("type", new ToolArguments { Target = "1", Text = "hunter2!!" }, loginSight);
+                                            Computer.Keep("hunter2!!");
+                                            passwordSummary = Hands.Hush("my password is hunter2!!");
+                                            passwordLabel = Computer.Moving("type", Computer.Masked(new ToolArguments { Text = "hunter2!!\n" }), null, false);
+                                            Sight hatShop = new Sight { Window = credentialHandle, Title = "Cat hat", Program = "shop" };
+                                            hatShop.Targets.Add(new Target { Number = 1, Role = "button", Name = "Buy now", Box = new Rectangle(10, 40, 80, 20) });
+                                            Computer.Look = delegate { return hatShop; };
+                                            Computer.Act = delegate(string name, ToolArguments a, Sight sight) { buyActs++; return "Clicked it."; };
+                                            string[] buyScript = { "ask{\"text\": \"It's $4.99. Buy it?\"}", "click{\"target\": \"1\"}", "done{\"text\": \"Bought the cat hat.\"}" };
+                                            Job hatJob = new Job("buy the cat hat");
+                                            hatJob.Think = delegate(string system, string user, System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, ToolArguments>> calls) { return buyScript[Math.Min(buyLine++, buyScript.Length - 1)]; };
+                                            buyRun = hatJob.Run();
+                                        }
+                                        finally
+                                        {
+                                            Computer.Bypass = legacyBypassWas;
+                                            Computer.SecretFocus = secretWas;
+                                            Computer.Act = actWas;
+                                        }
                                     }
                                     if (Computer.Bypass || passwordResult != "Won't type in a password box. They type passwords themselves." || passwordResult.IndexOf("hunter2", StringComparison.Ordinal) >= 0
                                         || passwordSummary != "my password is " + Computer.Dots || passwordLabel != "Typing \"" + Computer.Dots + "\" and pressing Enter")
