@@ -6,6 +6,8 @@ on:
       - azure-dev
     paths:
       - .github/workflows/windows-full-smoke.yml
+      - app/**
+      - ci/**
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * *'
