@@ -15376,16 +15376,29 @@ namespace CapriDesktop
                                 chatting = discordChattingWas;
                                 hidden = discordHiddenWas;
                                 if (discordIdle != "Plugged in" || discordDance != "Dancing to music" || discordAskedDance != "Dancing" || discordAsleep != "Asleep" || discordCall != "Voice chatting") throw new Exception("Her Discord states were wrong: " + discordIdle + ", " + discordDance + ", " + discordAskedDance + ", " + discordAsleep + ", " + discordCall);
+                                string discordToggleAppWas = Presence.AppId;
                                 bool discordOffWas = preferences.NoDiscord;
-                                preferences.NoDiscord = false;
-                                mainframe.Sync();
-                                bool discordShownOn = mainframe.DiscordShown;
-                                ToggleDiscord();
-                                bool discordTurnedOff = preferences.NoDiscord && !OnDiscord && !mainframe.DiscordShown;
-                                ToggleDiscord();
-                                bool discordBackOn = !preferences.NoDiscord && OnDiscord && mainframe.DiscordShown;
-                                preferences.NoDiscord = discordOffWas;
-                                mainframe.Sync();
+                                bool discordShownOn = false, discordTurnedOff = false, discordBackOn = false;
+                                try
+                                {
+                                    // The two pipe tests above restore the environment. Keep the test's own Azure app ID
+                                    // configured while exercising the Mainframe switch, which correctly refuses to turn on
+                                    // when no user-owned Discord application ID is configured.
+                                    Presence.AppId = "1431234567890123456";
+                                    preferences.NoDiscord = false;
+                                    mainframe.Sync();
+                                    discordShownOn = mainframe.DiscordShown;
+                                    ToggleDiscord();
+                                    discordTurnedOff = preferences.NoDiscord && !OnDiscord && !mainframe.DiscordShown;
+                                    ToggleDiscord();
+                                    discordBackOn = !preferences.NoDiscord && OnDiscord && mainframe.DiscordShown;
+                                }
+                                finally
+                                {
+                                    preferences.NoDiscord = discordOffWas;
+                                    Presence.AppId = discordToggleAppWas;
+                                    mainframe.Sync();
+                                }
                                 if (new Preferences().NoDiscord || !discordShownOn || !discordTurnedOff || !discordBackOn) throw new Exception("The Show on Discord switch went wrong: shown " + discordShownOn + ", off " + discordTurnedOff + ", back on " + discordBackOn);
                                 checks.Add("PASS Azure Discord status: a pretend Discord receives the user-owned app ID, activity, Azure version and start time without Capri artwork or links; clone count is sent when supported, Discord rejection falls back to a plain activity, turning presence off hangs up, and the Mainframe switch turns it off and back on");
                             }
