@@ -1074,8 +1074,7 @@ namespace CapriDesktop
 
         internal static string Remembered()
         {
-            MemoryMode mode = CurrentMemoryMode;
-            return !MemoryAvailable ? "" : WrittenDown() + (Keeping && mode == MemoryMode.Full ? Seen() : "");
+            return !MemoryAvailable ? "" : WrittenDown() + (Keeping ? Seen() : "");
         }
 
         // What she's written down. It only changes when she writes something, so a chat's cached prompt runs up to here.

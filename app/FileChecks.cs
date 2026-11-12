@@ -84,7 +84,7 @@ namespace CapriDesktop
 
                 // Her safety lines are never in what it shows, and nothing it does changes them.
                 foreach (string line in (Brain.Safety + "\n" + Brain.Machinery).Split('\n'))
-                    if (panel.Draft.IndexOf(line.Trim(), StringComparison.Ordinal) >= 0) throw new Exception("The file editor showed one of her safety lines.");
+                    if (line.Trim().Length > 0 && panel.Draft.IndexOf(line.Trim(), StringComparison.Ordinal) >= 0) throw new Exception("The file editor showed one of her safety lines.");
                 if (panel.Draft.Contains(Brain.Safety) || panel.Draft.Contains("findahelpline")) throw new Exception("The file editor showed her safety lines.");
 
                 // Asking again brings up the same panel, on the file asked for, from the Mainframe's key too.

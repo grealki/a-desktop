@@ -145,7 +145,8 @@ namespace CapriDesktop
             Explain(showHide, "Hide Capri", "Mainframe.cs", null, "Hide / Show Capri");
             Explain(perch, "Ride cursor", "Mainframe.cs", null, "Ride cursor / Hop off");
             Explain(notesKey, "Open her notes");
-            Explain(memoriesKey, "Remember our chats", "Mainframe.cs", null, "Her memories");
+            Explain(memoriesKey, "Open her memories", "Mainframe.cs", null, "Open her memories");
+            Explain(remembering, "Azure memory mode", "Mainframe.cs", null, "Azure memory mode");
             Explain(popTimes, "Pop-ins", "Mainframe.cs", null, "Pop-in times");
             Explain(gameNotes, "game_notes", "Hands.cs", null, "Game controls");
             Explain(miniGames, "mini_game", "Hands.cs", null, "Mini-games");
