@@ -451,18 +451,17 @@ namespace CapriDesktop
         internal static bool IsKimi(string address) { return Regex.IsMatch(address ?? "", @"\Ahttps://api\.moonshot\.ai(/|\z)", RegexOptions.IgnoreCase); }
 
         // Why this whole brain has no Thinking picker, or null when it has one.
-        internal static string Closed(string kind, bool code)
+        internal static string Closed(string kind)
         {
-            if (code) return "Legacy access codes are not supported";
             if (Plans.Is(kind)) return "its app sets this";
             return kind == "openai" || kind == "anthropic" || kind == "google" || kind == "deepseek" || kind == "nvidia" || kind == "openrouter" || kind == "kimi" ? null : "not for local brains";
         }
 
         // Why a model can't take a level, in a few words for its menu row, or null when it can.
-        internal static string Why(string kind, string model, int level, bool code, CloudModel listed = null)
+        internal static string Why(string kind, string model, int level, CloudModel listed = null)
         {
             if (level <= Default || level > High) return null;
-            string closed = Closed(kind, code);
+            string closed = Closed(kind);
             if (closed != null) return closed;
             string id = (model ?? "").ToLowerInvariant();
             lock (declined) if (declined.Contains(kind + "|" + id + "|" + level)) return Declined;
@@ -3210,28 +3209,28 @@ namespace CapriDesktop
         }
 
         private string CurrentModel { get { Cloud remote = Remote; return remote != null ? remote.Model : Model; } }
-        private ThinkingPick Picked(string kind, string model, bool code)
+        private ThinkingPick Picked(string kind, string model)
         {
             ThinkingPick[] picks = Picks;
-            if (picks == null || ThinkingLevels.Closed(kind, code) != null) return null;
+            if (picks == null || ThinkingLevels.Closed(kind) != null) return null;
             foreach (ThinkingPick pick in picks) if (pick != null && pick.Source == kind + "|" + model) return pick;
             return null;
         }
 
-        private ThinkingPick CurrentPick { get { return Picked(CurrentKind, CurrentModel, false); } }
+        private ThinkingPick CurrentPick { get { return Picked(CurrentKind, CurrentModel); } }
 
         private static int Usable(ThinkingPick pick, string kind, string model)
         {
-            return pick == null || LevelWhy(kind, model, pick.Level, false) != null ? ThinkingLevels.Default : Math.Max(ThinkingLevels.Default, Math.Min(ThinkingLevels.High, pick.Level));
+            return pick == null || LevelWhy(kind, model, pick.Level) != null ? ThinkingLevels.Default : Math.Max(ThinkingLevels.Default, Math.Min(ThinkingLevels.High, pick.Level));
         }
 
-        private static string LevelWhy(string kind, string model, int level, bool code) { return ThinkingLevels.Why(kind, model, level, code, kind == "openrouter" ? Listed(kind, model) : null); }
+        private static string LevelWhy(string kind, string model, int level) { return ThinkingLevels.Why(kind, model, level, kind == "openrouter" ? Listed(kind, model) : null); }
 
         internal string ThinkingSource { get { return CurrentKind + "|" + CurrentModel; } }
         internal string ThinkingExtra { get { ThinkingPick pick = CurrentPick; return pick == null ? null : pick.Extra; } }
-        internal bool ThinkingOpen { get { return ThinkingLevels.Closed(CurrentKind, false) == null && !string.IsNullOrEmpty(CurrentModel); } }
+        internal bool ThinkingOpen { get { return ThinkingLevels.Closed(CurrentKind) == null && !string.IsNullOrEmpty(CurrentModel); } }
         internal int ThinkingLevel { get { return Usable(CurrentPick, CurrentKind, CurrentModel); } }
-        internal string ThinkingWhy(int level) { return LevelWhy(CurrentKind, CurrentModel, level, false); }
+        internal string ThinkingWhy(int level) { return LevelWhy(CurrentKind, CurrentModel, level); }
 
         // Tells the Mainframe when a model turns down a level, since that happens partway through a chat.
         internal Action ThinkingChanged;
@@ -3290,7 +3289,7 @@ namespace CapriDesktop
                 bool brief = remote.Kind == "nvidia" && remote.Model == "google/gemma-4-31b-it";
                 bool screen = (parts != null || unhurried) && remote.Kind == "nvidia";
                 bool super = screen && (!job || unhurried) && !routing && remote.Model == "nvidia/nemotron-3.5-super-vl-120b-a12b";
-                ThinkingPick pick = plain ? null : Picked(remote.Kind, remote.Model, false);
+                ThinkingPick pick = plain ? null : Picked(remote.Kind, remote.Model);
                 int level = Usable(pick, remote.Kind, remote.Model);
                 int headroom = unhurried ? 8000 : 2000;
                 int replyRoom = ThinkingLevels.Room(level, ReplyLimit(headroom, job || routing));
@@ -3362,7 +3361,7 @@ namespace CapriDesktop
             string server;
             string serverKey;
             GetServer(out server, out serverKey);
-            if (server != null) return Complete(server, model, messages, tools, calls, parts, limit, ticket, routing, openAiTools, job, model, serverKey, plain || !ThinkingLevels.IsKimi(server) ? null : Picked("kimi", model, false));
+            if (server != null) return Complete(server, model, messages, tools, calls, parts, limit, ticket, routing, openAiTools, job, model, serverKey, plain || !ThinkingLevels.IsKimi(server) ? null : Picked("kimi", model));
             Engine local = Local;
             if (local != null)
             {
@@ -3631,7 +3630,7 @@ namespace CapriDesktop
                 Fallbacks = fallback ? "default" : null
             };
             ClaudeOutput usualOutput = body.Output;
-            ThinkingPick pick = plain || brief > 0 ? null : Picked(remote.Kind, model, false);
+            ThinkingPick pick = plain || brief > 0 ? null : Picked(remote.Kind, model);
             int level = Usable(pick, remote.Kind, model);
             if (level != ThinkingLevels.Default) ThinkingLevels.Apply(body, level);
             if (pick != null) body.Extra = pick.Extra;
