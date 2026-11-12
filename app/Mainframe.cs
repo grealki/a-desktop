@@ -219,7 +219,7 @@ namespace CapriDesktop
         private readonly ContextMenuStrip hearingMenu;
         private bool speechFix;
         private readonly Label keysNote;
-        private readonly Label blackwallNote;
+        private readonly Label securityNote;
         private readonly Label updateNote;
         private readonly Key keyHelp;
         private readonly Label shortcut;
@@ -936,10 +936,10 @@ namespace CapriDesktop
             // says what the preset does. Azure mode is its Azure preset now.
             security = Make("Security: " + Security.PresetName, 28 + c, 795, 328, 22, delegate { OpenSecurity(); });
             security.AccessibleName = "Security: what she does on your PC without asking first";
-            blackwallNote = Caption(Security.Short, 28 + c, 819, small, Faint);
-            blackwallNote.AutoSize = false;
-            blackwallNote.TextAlign = ContentAlignment.MiddleRight;
-            blackwallNote.Bounds = new Rectangle(28 + c, 819, 328, 18);
+            securityNote = Caption(Security.Short, 28 + c, 819, small, Faint);
+            securityNote.AutoSize = false;
+            securityNote.TextAlign = ContentAlignment.MiddleRight;
+            securityNote.Bounds = new Rectangle(28 + c, 819, 328, 18);
             // Power saver: Off, In games or Always (issue #111). Simple Settings keeps it; the rows from Perch down fold under it.
             powerSaver = Setting("Power saver", SaverNames, c, 840, "Power saver: how lightly she runs in games, or always");
             powerSaverName = new Readout(powerSaver);
@@ -1773,7 +1773,7 @@ namespace CapriDesktop
 
         internal string JobsStatus { get { return (cursor.Checked ? "cursor" : "-") + " | " + security.Text; } }
 
-        internal string AzureStatus { get { return security.Text + " | " + blackwallNote.Text; } }
+        internal string AzureStatus { get { return security.Text + " | " + securityNote.Text; } }
 
         internal string SettingsStatus { get { return languages.Text + " | " + volumeName.Text + " | " + soundsName.Text + " | " + wanderName.Text + " | " + sleepName.Text + " | " + (dance.Checked ? "dance" : "-") + " | " + (intro.Checked ? "intro" : "-") + " | " + repliesName.Text + " | " + recallName.Text + " | " + bubbleName.Text; } }
 
@@ -2835,7 +2835,7 @@ namespace CapriDesktop
             cursor.Checked = capri.UsesCursor;
             gamingMode.Checked = capri.GamingWanted;
             security.Text = "Security: " + Security.PresetName;
-            blackwallNote.Text = Security.Short;
+            securityNote.Text = Security.Short;
             if (guard != null && !guard.IsDisposed) guard.Sync();
             if (extras != null && !extras.IsDisposed) extras.Sync();
             watch.Checked = capri.Watching;
