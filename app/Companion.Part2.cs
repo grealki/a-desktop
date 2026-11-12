@@ -18816,9 +18816,9 @@ namespace CapriDesktop
                                         new[] { "POST /v1/chat/completions", "Tool results, from what you just did:", "media:", "Pressed next. I couldn't check whether the track changed." },
                                         new[] { "POST /v1/messages" },
                                         new[] { "GET /models ", "Authorization: Bearer " + deepKey },
-                                        new[] { "POST /chat/completions ", "\"thinking\":{\"type\":\"disabled\"}", "\"max_tokens\":2000", "\"model\":\"deepseek-flash\"", "You are Capri" },
+                                        new[] { "POST /chat/completions ", "\"thinking\":{\"type\":\"disabled\"}", "\"max_tokens\":2000", "\"model\":\"deepseek-flash\"", "You are Azure" },
                                         new[] { "GET /v1/models ", "Authorization: Bearer nvapi-test" },
-                                        new[] { "POST /v1/chat/completions ", "\"max_tokens\":256", "\"chat_template_kwargs\":{\"enable_thinking\":false}", "\"model\":\"google\\/gemma-4-31b-it\"", "You are Capri" }
+                                        new[] { "POST /v1/chat/completions ", "\"max_tokens\":256", "\"chat_template_kwargs\":{\"enable_thinking\":false}", "\"model\":\"google\\/gemma-4-31b-it\"", "You are Azure" }
                                     };
                                     for (int i = 0; i < cloudWanted.Length; i++)
                                         foreach (string part in cloudWanted[i])
