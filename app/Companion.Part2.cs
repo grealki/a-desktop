@@ -3251,7 +3251,6 @@ namespace CapriDesktop
                 preferences.Silent = silentWas;
                 preferences.ListenCapri = nameWas;
                 FreeSpeak = freeWas;
-                Presence.AppId = discordAppWas;
                 SavePreferences();
                 mainframe.Sync();
             }
@@ -3494,6 +3493,7 @@ namespace CapriDesktop
                 ClipSettings.CheckFolder = folderCheckWas;
                 Sfx.TypeOut = typeWas;
                 FreeSpeak = freeWas;
+                Presence.AppId = discordAppWas;
                 SavePreferences();
                 mainframe.Sync();
             }
@@ -15312,7 +15312,7 @@ namespace CapriDesktop
                                 }
                                 int discordPid = Process.GetCurrentProcess().Id;
                                 if (discordHelloOp != 0 || discordHello == null || discordHello.IndexOf("\"client_id\":\"1431234567890123456\"", StringComparison.Ordinal) < 0 || discordHello.IndexOf("\"v\":1", StringComparison.Ordinal) < 0) throw new Exception("Her Discord hello was wrong: " + discordHelloOp + " " + discordHello);
-                                if (discordLineOp != 1 || discordLine == null || discordLine.IndexOf("\\"cmd\\":\\"SET_ACTIVITY\\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"details\\":\\"Dancing to music\\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"state\\":\\"Azure 9.9.9\\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"pid\\":" + discordPid, StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"start\\":", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"assets\\"", StringComparison.Ordinal) >= 0 || discordLine.IndexOf("\\"buttons\\"", StringComparison.Ordinal) >= 0 || discordLine.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure Discord status line was wrong: " + discordLineOp + " " + discordLine);
+                                if (discordLineOp != 1 || discordLine == null || discordLine.IndexOf("\"cmd\":\"SET_ACTIVITY\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"details\":\"Dancing to music\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"state\":\"Azure 9.9.9\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"pid\":" + discordPid, StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"start\":", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"assets\"", StringComparison.Ordinal) >= 0 || discordLine.IndexOf("\"buttons\"", StringComparison.Ordinal) >= 0 || discordLine.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure Discord status line was wrong: " + discordLineOp + " " + discordLine);
                                 if (discordSeen != "Showing: Dancing to music" || !discordHungUp) throw new Exception("Her Discord status didn't settle or hang up: " + discordSeen + ", hung up " + discordHungUp);
                                 if (Presence.Look("Plugged in") != "plugged" || Presence.Look("Playing a game") != "game" || Presence.Look("Streaming") != "live" || Presence.Look("Using the computer") != "computer" || Presence.Look("Multiplying") != "clones"
                                     || Presence.Badge("Using the computer") != "cursor" || Presence.Badge("Playing a game") != "controller" || Presence.Badge("Plugged in") != null || Presence.Header("Voice chatting") != 2 || Presence.Header("Plugged in") != 0) throw new Exception("Her Discord looks were picked wrong.");
@@ -15348,8 +15348,8 @@ namespace CapriDesktop
                                     Presence.AppId = discordAppWas;
                                     Presence.ArtLive = discordArtWas;
                                 }
-                                if (discordMoving == null || discordMoving.IndexOf("\\"details\\":\\"Playing a game\\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"state\\":\\"Azure 9.9.9\\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"id\\":\\"azure-clones\\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"size\\":[14,9999]", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"assets\\"", StringComparison.Ordinal) >= 0 || discordMoving.IndexOf("\\"buttons\\"", StringComparison.Ordinal) >= 0 || discordMoving.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure moving Discord status was wrong: " + discordMoving);
-                                if (discordFellBack == null || discordFellBack.IndexOf("\\"state\\":\\"Azure 9.9.9\\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\\"details\\":\\"Playing a game\\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\\"party\\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\\"assets\\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\\"buttons\\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure status didn't fall back to its plain line when Discord said no: " + discordFellBack);
+                                if (discordMoving == null || discordMoving.IndexOf("\"details\":\"Playing a game\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\"state\":\"Azure 9.9.9\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\"id\":\"azure-clones\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\"size\":[14,9999]", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\"assets\"", StringComparison.Ordinal) >= 0 || discordMoving.IndexOf("\"buttons\"", StringComparison.Ordinal) >= 0 || discordMoving.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure moving Discord status was wrong: " + discordMoving);
+                                if (discordFellBack == null || discordFellBack.IndexOf("\"state\":\"Azure 9.9.9\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\"details\":\"Playing a game\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\"party\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\"assets\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\"buttons\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure status didn't fall back to its plain line when Discord said no: " + discordFellBack);
                                 Clip discordClipWas = clip;
                                 Job discordJobWas = job;
                                 string discordSpeechWas = speech;
