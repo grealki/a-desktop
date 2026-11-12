@@ -933,9 +933,9 @@ namespace CapriDesktop
         [DataMember] public bool QuickHands;
         [DataMember] public bool Bypass;
         // Her SECURITY window's toggles 1 to 10 as 1s and 0s, like "1111111000" for Trusted; "Hey Capri" is HeyCapri. Missing in
-        // settings from before it, so Blackwall mode moves to the Blackwall preset and everyone else gets Trusted.
+        // settings from before it, so the old Blackwall bypass mode moves to the safe Azure preset and everyone else gets Trusted.
         [DataMember] public string Permissions;
-        // Listen for "Hey Capri" is off out of the box (Lachy, 29 Oct). It's a toggle in her Security window, and the Blackwall preset turns it on.
+        // Listen for "Hey Capri" is off out of the box (Lachy, 29 Oct). It's a toggle in her Security window, and the Azure preset turns it on.
         [DataMember] public bool HeyCapri;
         [DataMember] public bool HdVoice;
         [DataMember] public bool HdCpu;
@@ -5251,7 +5251,7 @@ namespace CapriDesktop
                 // #88's data blocks stay on either way, since a wish saved in her notes still reaches her brain from inside one: on
                 // qwen3 8b "Always call them Captain" came back in 3 of 6 replies inside the block, the same as from plain lines,
                 // and in none with no note (5 Nov). So her notes, memories and old chats come as memory_data and what she saw as
-                // screen_data in Blackwall too.
+                // screen_data in Azure too.
                 Brain.Note("always call them boss");
                 File.WriteAllText(Brain.MemoriesPath, Brain.MemoriesHead + "## Wednesday 28 October 2026\n- They finally beat Malenia in Elden Ring after 40 tries.\n");
                 Directory.CreateDirectory(Brain.TranscriptPath);
@@ -11339,7 +11339,7 @@ namespace CapriDesktop
         // mic stays open but hears nothing, so her own voice can't wake her.
         private void CheckWake(double now)
         {
-            // Her smoke test flips the setting in other checks too (SECURITY's Blackwall preset turns it on), so there it
+            // Her smoke test flips the setting in other checks too (SECURITY's Azure preset turns it on), so there it
             // only ever runs inside her own wake checks, and even then never opens the mic or downloads.
             if (testing && !wakeChecks) return;
             if (!preferences.HeyCapri || quitting) { if (wakeOpen) CloseWake(); return; }
