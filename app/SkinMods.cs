@@ -471,12 +471,17 @@ namespace CapriDesktop
             Clip clipWas = clip;
             Ledge seatWas = seat;
             bool ridingWas = riding, draggingWas = dragging, walkingWas = walking, fallingWas = falling, busyWas = frontBusy;
-            string speechWas = speech;
             try
             {
+                // This renderer check runs after other smoke sections in the same process. Start from a genuinely
+                // quiet state so an old bubble, typing box, note or talk state cannot mask the Power saver frame rate.
+                talkState = TalkState.Off;
+                speech = null;
+                if (box.Visible) box.Hide();
+                if (typer.Visible) typer.Hide();
+                notes.Clear();
                 seat = null;
                 riding = dragging = walking = falling = frontBusy = false;
-                speech = null;
                 preferences.Motion = false;
                 veiled = false;
                 veilUntil = -1;
@@ -708,7 +713,12 @@ namespace CapriDesktop
                 walking = walkingWas;
                 falling = fallingWas;
                 frontBusy = busyWas;
-                speech = speechWas;
+                // Leave the smoke process clean for the next section; none of these transient UI states is part of the art test.
+                talkState = TalkState.Off;
+                speech = null;
+                if (box.Visible) box.Hide();
+                if (typer.Visible) typer.Hide();
+                notes.Clear();
                 Play(clipWas);
             }
         }
@@ -739,7 +749,8 @@ namespace CapriDesktop
                 sulkSince = -1;
                 outro = null;
                 talkState = TalkState.Off;
-                box.Visible = typer.Visible = false;
+                if (box.Visible) box.Hide();
+                if (typer.Visible) typer.Hide();
                 notes.Clear();
                 preferences.PerchFps = 30;
                 speech = null;
@@ -863,7 +874,8 @@ namespace CapriDesktop
                 preferences.PowerSaver = 2;
                 Play(idle);
                 double restAt = clock.Elapsed.TotalSeconds;
-                if (FrameInterval(restAt) != 61 || !Resting(restAt)) throw new Exception("Standing still, she didn't rest at Power saver's pace.");
+                if (FrameInterval(restAt) != 61 || !Resting(restAt))
+                    throw new Exception("Standing still, she didn't rest at Power saver's pace: interval " + FrameInterval(restAt) + ", resting " + Resting(restAt) + ", saving " + Saving + ", quiet " + Quiet(restAt) + ", standing " + StandingStill + ", talk " + talkState + ", bubble " + box.Visible + ", typing " + typer.Visible + ", notes " + notes.Count + ".");
                 clipStart = restAt - 1.01;
                 int heldA = Advance(restAt), heldB = Advance(restAt + 1.0 / 30);
                 if (heldA != heldB) throw new Exception("Resting, her loop didn't hold its frames.");
@@ -1036,8 +1048,8 @@ namespace CapriDesktop
                 sulkSince = sulkWas;
                 outro = outroWas;
                 talkState = talkWas;
-                box.Visible = boxWas;
-                typer.Visible = typerWas;
+                if (boxWas) box.Show(); else box.Hide();
+                if (typerWas) typer.Show(); else typer.Hide();
                 notes.Clear();
                 notes.AddRange(notesWas);
                 speech = speechWas;
