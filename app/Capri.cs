@@ -6876,10 +6876,18 @@ namespace CapriDesktop
             mainframe.Sync();
         }
 
-        internal bool OnDiscord { get { return !preferences.NoDiscord; } }
+        internal bool OnDiscord { get { return !preferences.NoDiscord && !string.IsNullOrEmpty(Presence.AppId); } }
 
         internal void ToggleDiscord()
         {
+            if (string.IsNullOrEmpty(Presence.AppId))
+            {
+                preferences.NoDiscord = true;
+                SavePreferences();
+                mainframe.VoiceNote("Discord Presence needs your own Azure Discord application ID. Set AZURE_DISCORD_APP_ID in your Windows user environment, then restart Azure.", false);
+                mainframe.Sync();
+                return;
+            }
             preferences.NoDiscord = !preferences.NoDiscord;
             SavePreferences();
             mainframe.Sync();

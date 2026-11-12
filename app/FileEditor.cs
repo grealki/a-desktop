@@ -1667,7 +1667,7 @@ namespace CapriDesktop
         {
             internal bool Blurred;
             // Where its window sits in the panel's.
-            internal Point Offset;
+            internal Point Offset { get; set; }
 
             internal Frost()
             {

@@ -34,7 +34,7 @@ jobs:
         run: ./ci/build-windows.ps1 -OutputDirectory out/windows -SmokeTest -SmokeSeconds 1800
       - name: Upload full smoke diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: windows-full-smoke
           path: out/windows/smoke
