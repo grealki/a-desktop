@@ -3251,6 +3251,7 @@ namespace CapriDesktop
                 preferences.Silent = silentWas;
                 preferences.ListenCapri = nameWas;
                 FreeSpeak = freeWas;
+                Presence.AppId = discordAppWas;
                 SavePreferences();
                 mainframe.Sync();
             }
@@ -3267,6 +3268,7 @@ namespace CapriDesktop
             System.Collections.Generic.Dictionary<string, int> levels = new System.Collections.Generic.Dictionary<string, int>();
             Preferences preferencesWas = (Preferences)typeof(object).GetMethod("MemberwiseClone", fields).Invoke(preferences, null);
             string languageWas = Brain.Language;
+            string discordAppWas = Presence.AppId;
             string runWas = Startup.RunKey, approvedWas = Startup.ApprovedKey;
             string testKey = "Software\\CapriSmoke\\Settings-" + Guid.NewGuid().ToString("N");
             string folderWas = preferences.ClipFolder;
@@ -3285,6 +3287,8 @@ namespace CapriDesktop
             int setups = 0;
             try
             {
+                // This fixture tests the switch with an isolated Azure app ID; real users may leave it unset.
+                Presence.AppId = "1431234567890123456";
                 Startup.RunKey = testKey + "\\Run";
                 Startup.ApprovedKey = testKey + "\\Approved";
                 Sfx.TypeOut = null;
@@ -15265,8 +15269,8 @@ namespace CapriDesktop
                             checks.Add("PASS crash recovery: a crash goes in errors.txt with where in her code it happened (once, not every tick); one start that never settled (or a marker from before 0.7.6) only warns, and two in a row move settings.json aside to settings.crashed.json, say so and start fresh with her brain and voice keys, what they're for, which brain tier is picked and her hotkeys kept; settings that can't be read keep nothing, and a clean start keeps them all");
                             SmokeRunning(output, checks);
                             {
-                                // A pretend Discord on its own pipe: she says hello with the app's id, shows what she's doing with her
-                                // picture and buttons, and hangs up when Show on Discord goes off.
+                                // A pretend Discord on its own pipe checks Azure's user-owned app ID and activity.
+                                // No inherited Capri artwork, URLs or profile buttons may be sent.
                                 string discordPipeWas = Presence.PipeName, discordAppWas = Presence.AppId;
                                 Presence.PipeName = "capri-smoke-" + Process.GetCurrentProcess().Id + "-ipc-";
                                 Presence.AppId = "1431234567890123456";
@@ -15308,7 +15312,7 @@ namespace CapriDesktop
                                 }
                                 int discordPid = Process.GetCurrentProcess().Id;
                                 if (discordHelloOp != 0 || discordHello == null || discordHello.IndexOf("\"client_id\":\"1431234567890123456\"", StringComparison.Ordinal) < 0 || discordHello.IndexOf("\"v\":1", StringComparison.Ordinal) < 0) throw new Exception("Her Discord hello was wrong: " + discordHelloOp + " " + discordHello);
-                                if (discordLineOp != 1 || discordLine == null || discordLine.IndexOf("\"cmd\":\"SET_ACTIVITY\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"details\":\"Dancing to music\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"large_image\":\"capri\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"pid\":" + discordPid, StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"start\":", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\"label\":\"Get Capri\"", StringComparison.Ordinal) < 0) throw new Exception("Her Discord status line was wrong: " + discordLineOp + " " + discordLine);
+                                if (discordLineOp != 1 || discordLine == null || discordLine.IndexOf("\\"cmd\\":\\"SET_ACTIVITY\\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"details\\":\\"Dancing to music\\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"state\\":\\"Azure 9.9.9\\"", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"pid\\":" + discordPid, StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"start\\":", StringComparison.Ordinal) < 0 || discordLine.IndexOf("\\"assets\\"", StringComparison.Ordinal) >= 0 || discordLine.IndexOf("\\"buttons\\"", StringComparison.Ordinal) >= 0 || discordLine.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure Discord status line was wrong: " + discordLineOp + " " + discordLine);
                                 if (discordSeen != "Showing: Dancing to music" || !discordHungUp) throw new Exception("Her Discord status didn't settle or hang up: " + discordSeen + ", hung up " + discordHungUp);
                                 if (Presence.Look("Plugged in") != "plugged" || Presence.Look("Playing a game") != "game" || Presence.Look("Streaming") != "live" || Presence.Look("Using the computer") != "computer" || Presence.Look("Multiplying") != "clones"
                                     || Presence.Badge("Using the computer") != "cursor" || Presence.Badge("Playing a game") != "controller" || Presence.Badge("Plugged in") != null || Presence.Header("Voice chatting") != 2 || Presence.Header("Plugged in") != 0) throw new Exception("Her Discord looks were picked wrong.");
@@ -15344,8 +15348,8 @@ namespace CapriDesktop
                                     Presence.AppId = discordAppWas;
                                     Presence.ArtLive = discordArtWas;
                                 }
-                                if (discordMoving == null || discordMoving.IndexOf("assets\\/presence\\/game.gif?v=9.9.9\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("assets\\/presence\\/controller.gif?v=9.9.9\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\"size\":[14,9999]", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\"details\":\"Playing a game\"", StringComparison.Ordinal) < 0) throw new Exception("Her moving Discord status was wrong: " + discordMoving);
-                                if (discordFellBack == null || discordFellBack.IndexOf("\"large_image\":\"capri\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\"party\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\"details\":\"Playing a game\"", StringComparison.Ordinal) < 0) throw new Exception("Her status didn't go back to the plain line when Discord said no: " + discordFellBack);
+                                if (discordMoving == null || discordMoving.IndexOf("\\"details\\":\\"Playing a game\\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"state\\":\\"Azure 9.9.9\\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"id\\":\\"azure-clones\\"", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"size\\":[14,9999]", StringComparison.Ordinal) < 0 || discordMoving.IndexOf("\\"assets\\"", StringComparison.Ordinal) >= 0 || discordMoving.IndexOf("\\"buttons\\"", StringComparison.Ordinal) >= 0 || discordMoving.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure moving Discord status was wrong: " + discordMoving);
+                                if (discordFellBack == null || discordFellBack.IndexOf("\\"state\\":\\"Azure 9.9.9\\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\\"details\\":\\"Playing a game\\"", StringComparison.Ordinal) < 0 || discordFellBack.IndexOf("\\"party\\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\\"assets\\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("\\"buttons\\"", StringComparison.Ordinal) >= 0 || discordFellBack.IndexOf("capri", StringComparison.OrdinalIgnoreCase) >= 0) throw new Exception("Her Azure status didn't fall back to its plain line when Discord said no: " + discordFellBack);
                                 Clip discordClipWas = clip;
                                 Job discordJobWas = job;
                                 string discordSpeechWas = speech;
@@ -15383,7 +15387,7 @@ namespace CapriDesktop
                                 preferences.NoDiscord = discordOffWas;
                                 mainframe.Sync();
                                 if (new Preferences().NoDiscord || !discordShownOn || !discordTurnedOff || !discordBackOn) throw new Exception("The Show on Discord switch went wrong: shown " + discordShownOn + ", off " + discordTurnedOff + ", back on " + discordBackOn);
-                                checks.Add("PASS Discord status: on by default, a pretend Discord hears her hello with the app's id and 'Dancing to music' with her picture, start time and Get Capri button, she hangs up when it's turned off, her moving art and glitch controller (with her version on the end so Discord fetches them fresh), plain words and clone count go out and fall back to the plain line if Discord says no, her states read Plugged in, Dancing to music, Dancing (asked, with no music), Asleep and Voice chatting, and the Mainframe switch turns it off and back on");
+                                checks.Add("PASS Azure Discord status: a pretend Discord receives the user-owned app ID, activity, Azure version and start time without Capri artwork or links; clone count is sent when supported, Discord rejection falls back to a plain activity, turning presence off hangs up, and the Mainframe switch turns it off and back on");
                             }
                             Clip[] strips = { idle, idleBlink, idleBlinkGlitch, grin, glitch, dangle, sleep, wake, perch, perchBlink, perchBlinkGlitch, perchGlitch, idle };
                             int[] cells = { 0, 1, 1, 0, 1, 3, 0, 4, 8, 1, 1, 1, 0 };
