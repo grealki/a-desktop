@@ -35,8 +35,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-full-smoke
-          path: |
-            out/windows/smoke
-            out/windows/Capri.exe
-            out/windows/Capri-Setup.exe
+          path: out/windows/smoke
           if-no-files-found: warn
