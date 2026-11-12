@@ -73,7 +73,7 @@
         <ol class="moves">
           <li><a class="download inline" href="https://github.com/lachydotmcg/capri-desktop/releases/download/v0.8.6.1/Capri-Setup.exe" data-api="https://capri-reactions.lachydotmcg.workers.dev/download"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4"/></svg><span>Download</span></a></li>
           <li>Open <code>Capri-Setup.exe</code></li>
-          <li>“Windows protected your PC”? <b>More info</b> → <b>Run anyway</b></li>
+          <li>“Windows protected your PC”? Stop. Do not choose <b>Run anyway</b> or disable SmartScreen; verify the publisher and download source first.</li>
           <li><b>Install Capri</b></li>
           <li>“Installing the local speech model”: her free voice, about 316 MB. <b>Skip</b> gets it later</li>
         </ol>
@@ -84,7 +84,7 @@
           <dt>Startup</dt><dd>she starts with Windows; turn it off in Settings</dd>
           <dt>Needs</dt><dd>nothing else, not Ollama, not Claude Code</dd>
         </dl>
-        <p class="note">Windows warns because Capri is new and not signed yet. Got Capri from this site or GitHub? Then antivirus alerts like Wacatac, Zusy or MachineLearning/Anomalous are false alarms on a new app. Restore the file and allow it. The code is open on <a href="https://github.com/lachydotmcg/capri-desktop" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+        <p class="note">If Windows or your antivirus warns you, stop. Do not choose Run anyway, disable SmartScreen, restore a quarantined file or add an exception just because the download came from this site or GitHub. Verify the publisher and source independently; a matching checksum confirms the file matches a release, but does not prove that the release is safe. The code is open on <a href="https://github.com/lachydotmcg/capri-desktop" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
 
         <h3 id="checksum">Check your download</h3>
         <ol class="moves">
@@ -243,7 +243,7 @@
           <dt>Start with Windows</dt><dd>on by default, she starts when you sign in</dd>
           <dt>Show on Discord</dt><dd>on by default, your Discord profile shows "Playing Capri" and what she's doing</dd>
           <dt>Use her cursor</dt><dd>on by default, she searches YouTube, plays from Spotify's search, and drags Spotify's volume slider when you say Spotify</dd>
-          <dt>Security</dt><dd>where Blackwall mode was. Lockdown, Guarded, Trusted (the default) or Blackwall, and thirteen toggles in 0.8.5. <b>Friends on a call can ask, you confirm</b> starts off and needs your own mic or typing to confirm each request. <b>Keep personal details out of her memories</b> is on in every preset but Blackwall</dd>
+          <dt>Security</dt><dd>Lockdown, Guarded, Trusted (the default) or Azure, with thirteen toggles. Azure enables ordinary desktop actions and the optional wake word; payments, unrequested actions and credentials stay protected. <b>Friends on a call can ask, you confirm</b> starts off and each request still needs your own mic or typing to confirm. <b>Keep personal details out of her memories</b> is on in every preset.</dd>
           <dt>Power saver</dt><dd>Off, In games (the default) or Always. While a game is in front she draws herself less often when she sits still, runs her background checks less often and listens at a gentler pace, so she might take a moment longer to hear you. Watch my screen, Listen for Capri, Hey Capri and Clip my games keep working</dd>
           <dt>Perch</dt><dd>her frames a second while she sits on a window, 10 to 60 fps, 30 by default. Over 30 uses more CPU</dd>
           <dt>Remember our chats</dt><dd>on by default, daily transcripts and memories.md that stay on your PC</dd>

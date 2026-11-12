@@ -200,7 +200,7 @@ Get Capri only from [capriai.app](https://capriai.app/) or [GitHub](https://gith
 
 **Zero telemetry.** The app sends us nothing. [SECURITY.md](SECURITY.md) lists what she connects to, what the website counts, and what to do if Windows or your antivirus warns you.
 
-Stuck? The [setup guide](https://capriai.app/setup/) walks through it, or ask in the [Discord](https://discord.gg/capridesktop). [Windows or your antivirus may warn you](SECURITY.md#windows-or-your-antivirus-warned-me) because she's a new app. All the code is here.
+Stuck? The [setup guide](https://capriai.app/setup/) walks through it, or ask in the [Discord](https://discord.gg/capridesktop). If Windows or your antivirus warns you, stop and follow [SECURITY.md](SECURITY.md#windows-or-your-antivirus-warned-me); don't choose Run anyway, disable SmartScreen or restore a quarantined file just because you downloaded it from the project. All the code is here.
 
 <details>
 <summary><b>What your PC needs</b></summary>
