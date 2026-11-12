@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
-using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -15,15 +14,10 @@ namespace CapriDesktop
     // No login and no bot: when Discord isn't running there's no pipe, and she tries again later.
     internal sealed class Presence : IDisposable
     {
-        // The Discord application's id. Empty keeps her off Discord.
-        internal static string AppId = "1564889759157850182";
+        // Public application ID created for Azure in the Discord Developer Portal.
+        // Never reuse Capri's application ID. Empty means Presence is safely disabled.
+        internal static string AppId = (Environment.GetEnvironmentVariable("AZURE_DISCORD_APP_ID") ?? "").Trim();
         internal static string PipeName = "discord-ipc-";
-        internal const string Picture = "capri";
-        private const string Site = "https://capriai.app/";
-        private const string Server = "https://discord.gg/capridesktop";
-        // Discord only animates pictures at a public link, so her moving art sits on her site. Until it's there, or while the
-        // site's down, her still picture shows.
-        private const string Art = Site + "assets/presence/";
         private const int Wait = 5000;
         private const int Retry = 30000;
         private const int Refused = 600000;
@@ -31,7 +25,8 @@ namespace CapriDesktop
         private const int Spacing = 4000;
         // Sending the same line again now and then is how she notices Discord quit and came back.
         private const int Refresh = 60000;
-        internal static Func<bool> ArtLive = OnSite;
+        // Retained as an injectable seam for older tests; Azure does not fetch third-party artwork.
+        internal static Func<bool> ArtLive = delegate { return false; };
 
         private readonly object gate = new object();
         private readonly AutoResetEvent nudge = new AutoResetEvent(false);
@@ -54,7 +49,7 @@ namespace CapriDesktop
         // What she's doing, in a few plain words, or null to take her off their profile.
         internal void Show(string doing)
         {
-            if (string.IsNullOrEmpty(AppId)) return;
+            if (string.IsNullOrEmpty(AppId)) { status = "Not configured: set AZURE_DISCORD_APP_ID"; return; }
             lock (gate)
             {
                 if (doing == wanted) return;
@@ -174,7 +169,6 @@ namespace CapriDesktop
             int op;
             string said = Receive(pipe, out op);
             if (op != 1) { Note("Discord refused her: " + Reason(said)); return Refused; }
-            bool moving = ArtLive();
             string sent = null;
             int last = unchecked(Environment.TickCount - Refresh);
             while (!closing)
@@ -184,7 +178,7 @@ namespace CapriDesktop
                 int since = unchecked(Environment.TickCount - last);
                 if (doing == sent && since < Refresh) { nudge.WaitOne(Refresh - since); continue; }
                 if (since < Spacing) { nudge.WaitOne(Spacing - since); continue; }
-                Send(pipe, 1, Json(Activity(doing, moving)));
+                Send(pipe, 1, Json(Activity(doing)));
                 last = Environment.TickCount;
                 sent = doing;
                 if (Answer(pipe)) status = "Showing: " + doing;
@@ -217,46 +211,23 @@ namespace CapriDesktop
             return doing == "Using the computer" ? "cursor" : doing == "Playing a game" || doing == "Gaming" || doing == "Streaming" ? "controller" : null;
         }
 
-        // Voice chat reads "Listening to Capri" and Gaming Mode "Watching Capri". The rest stay "Playing Capri".
+        // Discord's activity type changes for voice chat and gaming.
         internal static int Header(string doing) { return doing == "Voice chatting" ? 2 : doing == "Gaming" ? 3 : 0; }
 
-        private static bool OnSite()
-        {
-            try
-            {
-                HttpWebRequest asking = (HttpWebRequest)WebRequest.Create(Art + "plugged.gif");
-                asking.Method = "HEAD";
-                asking.Timeout = Wait;
-                using (HttpWebResponse answer = (HttpWebResponse)asking.GetResponse()) return answer.StatusCode == HttpStatusCode.OK;
-            }
-            catch (WebException) { return false; }
-            catch (IOException) { return false; }
-        }
-
-        private DiscordCommand Activity(string doing, bool moving)
+        private DiscordCommand Activity(string doing)
         {
             DiscordActivity activity = new DiscordActivity
             {
                 Details = doing,
-                Times = new DiscordTimes { Start = started },
-                Assets = new DiscordAssets { Image = Picture, Text = "Capri " + version },
-                Buttons = new[] { new DiscordButton { Label = "Get Capri", Url = Site }, new DiscordButton { Label = "Join her Discord", Url = Server } }
+                State = "Azure " + version,
+                Times = new DiscordTimes { Start = started }
             };
-            // If Discord turns any of the extras down, she goes back to the plain line for the rest of this run.
+            // No Capri-owned URLs, artwork, invite links or application assets are sent.
             if (!plain)
             {
                 int crowd = Crowd;
-                string badge = Badge(doing);
-                // The version on the end makes Discord fetch her art again after an update, not a copy it kept.
-                string fresh = ".gif?v=" + version;
                 activity.Type = Header(doing);
-                if (crowd > 1) activity.Party = new DiscordParty { Id = "capri-clones", Size = new[] { crowd, Math.Max(crowd, 9999) } };
-                if (moving) activity.Assets.Image = Art + Look(doing) + fresh;
-                if (moving && badge != null)
-                {
-                    activity.Assets.Small = Art + badge + fresh;
-                    activity.Assets.SmallText = doing;
-                }
+                if (crowd > 1) activity.Party = new DiscordParty { Id = "azure-clones", Size = new[] { crowd, Math.Max(crowd, 9999) } };
             }
             return new DiscordCommand { Nonce = Guid.NewGuid().ToString(), Args = new DiscordArgs { Pid = pid, Activity = activity } };
         }
@@ -377,8 +348,9 @@ namespace CapriDesktop
         [DataMember(Name = "type", EmitDefaultValue = false)] public int Type;
         [DataMember(Name = "party", EmitDefaultValue = false)] public DiscordParty Party;
         [DataMember(Name = "timestamps")] public DiscordTimes Times;
-        [DataMember(Name = "assets")] public DiscordAssets Assets;
-        [DataMember(Name = "buttons")] public DiscordButton[] Buttons;
+        [DataMember(Name = "assets", EmitDefaultValue = false)] public DiscordAssets Assets;
+        [DataMember(Name = "buttons", EmitDefaultValue = false)] public DiscordButton[] Buttons;
+        [DataMember(Name = "state", EmitDefaultValue = false)] public string State;
     }
 
     [DataContract]
