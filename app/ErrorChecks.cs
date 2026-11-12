@@ -519,11 +519,11 @@ namespace CapriDesktop
                 new object[] { "local", "gemma4:e4b", high, true }, new object[] { "claudecode", "opus", high, true }
             };
             foreach (object[] row in table)
-                if ((ThinkingLevels.Why((string)row[0], (string)row[1], (int)row[2], false) != null) != (bool)row[3]) throw new Exception("Thinking read " + row[0] + " " + row[1] + " " + ThinkingLevels.Names[(int)row[2]] + " wrong.");
-            if (ThinkingLevels.Why("anthropic", "claude-haiku-5-5", high, true) == null || ThinkingLevels.Why("openai", "gpt-5.6", ThinkingLevels.Default, false) != null) throw new Exception("Thinking opened a Capri code or greyed Default.");
+                if ((ThinkingLevels.Why((string)row[0], (string)row[1], (int)row[2]) != null) != (bool)row[3]) throw new Exception("Thinking read " + row[0] + " " + row[1] + " " + ThinkingLevels.Names[(int)row[2]] + " wrong.");
+            if (ThinkingLevels.Closed("anthropic") != null || ThinkingLevels.Why("anthropic", "claude-haiku-5-5", high) != null || ThinkingLevels.Why("openai", "gpt-5.6", ThinkingLevels.Default) != null) throw new Exception("Thinking closed a supported provider or Default.");
             CloudModel router = new CloudModel { ReasoningRead = true, Reasoning = new CloudModelReasoning { Mandatory = true, Efforts = new[] { "max", "high", "low", "none" } } };
-            if (ThinkingLevels.Why("openrouter", "a/b", off, false, router) == null || ThinkingLevels.Why("openrouter", "a/b", medium, false, router) != "Low or High only" || ThinkingLevels.Why("openrouter", "a/b", high, false, router) != null
-                || ThinkingLevels.Why("openrouter", "a/b", high, false, new CloudModel { ReasoningRead = true }) == null || ThinkingLevels.Why("openrouter", "a/b", high, false, new CloudModel()) != null || ThinkingLevels.Why("openrouter", "a/b", high, false, null) != null)
+            if (ThinkingLevels.Why("openrouter", "a/b", off, router) == null || ThinkingLevels.Why("openrouter", "a/b", medium, router) != "Low or High only" || ThinkingLevels.Why("openrouter", "a/b", high, router) != null
+                || ThinkingLevels.Why("openrouter", "a/b", high, new CloudModel { ReasoningRead = true }) == null || ThinkingLevels.Why("openrouter", "a/b", high, new CloudModel()) != null || ThinkingLevels.Why("openrouter", "a/b", high, null) != null)
                 throw new Exception("Thinking misread OpenRouter's model list.");
             if (Brain.ReadCloudModels("nvidia", "{\"data\":[{\"id\":\"meta/llama-3.3-70b-instruct\",\"reasoning\":true}]}").Count != 1) throw new Exception("A reasoning field in another shape lost the model list.");
             if (Brain.ReadCloudModels("openrouter", "{\"data\":[{\"id\":\"example/think\",\"architecture\":{\"input_modalities\":[\"text\"],\"output_modalities\":[\"text\"]},\"supported_parameters\":[\"reasoning\"],\"reasoning\":true}]}").Count != 1) throw new Exception("OpenRouter's reasoning in another shape lost its model list.");
@@ -588,7 +588,7 @@ namespace CapriDesktop
                 const string refused = "!400 {\"error\":{\"message\":\"That setting isn't available.\"}}";
                 string retried = ask("sk-proj-test", "gpt-90", high, null, new[] { refused, fine });
                 string[] tries = retried.Split(new[] { "\n---\n" }, StringSplitOptions.None);
-                if (tries.Length != 2 || !tries[0].Contains("\"reasoning_effort\":\"high\"") || tries[1].Contains("\"reasoning_effort\"") || retried.Contains("failed:") || ThinkingLevels.Why("openai", "gpt-90", high, false) == null || ThinkingLevels.Why("openai", "gpt-90", low, false) != null) throw new Exception("A level a model turned down failed the chat or stayed open: " + retried);
+                if (tries.Length != 2 || !tries[0].Contains("\"reasoning_effort\":\"high\"") || tries[1].Contains("\"reasoning_effort\"") || retried.Contains("failed:") || ThinkingLevels.Why("openai", "gpt-90", high) == null || ThinkingLevels.Why("openai", "gpt-90", low) != null) throw new Exception("A level a model turned down failed the chat or stayed open: " + retried);
                 string unforgiven = ask("sk-proj-test", "gpt-91", high, "{\"x\":1}", new[] { refused, fine });
                 if (!unforgiven.Contains("failed:") || unforgiven.Contains("\n---\nPOST")) throw new Exception("Extra JSON asked again without itself: " + unforgiven);
                 List<ChatMessage> kimiChat = new List<ChatMessage> { new ChatMessage("system", "Be brief."), new ChatMessage("user", "Hi") };
@@ -596,7 +596,7 @@ namespace CapriDesktop
                 string kimiAddress = FakeServer(new[] { refused, fine }, kimiAsked, out fake);
                 string kimiSaid = new Brain().Complete(kimiAddress, "kimi-k3", kimiChat, false, new List<KeyValuePair<string, ToolArguments>>(), null, 90, -1, false, null, false, "kimi-k3", null, new ThinkingPick { Source = "kimi|kimi-k3", Level = low });
                 fake.Stop();
-                if (kimiSaid != "ok" || kimiAsked.Count != 2 || !kimiAsked[0].Contains("\"reasoning_effort\":\"low\"") || kimiAsked[1].Contains("reasoning_effort") || ThinkingLevels.Why("kimi", "kimi-k3", low, false) == null) throw new Exception("Kimi didn't turn a level down without failing the chat.");
+                if (kimiSaid != "ok" || kimiAsked.Count != 2 || !kimiAsked[0].Contains("\"reasoning_effort\":\"low\"") || kimiAsked[1].Contains("reasoning_effort") || ThinkingLevels.Why("kimi", "kimi-k3", low) == null) throw new Exception("Kimi didn't turn a level down without failing the chat.");
                 kimiAsked.Clear();
                 Brain.ReplyLength = 1;
                 kimiAddress = FakeServer(new[] { fine }, kimiAsked, out fake);
