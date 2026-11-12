@@ -378,7 +378,7 @@ All the changes are in the [release notes](https://github.com/lachydotmcg/capri-
 - [x] Opening as many apps as you name in one ask, like "open Discord, Spotify and Steam"
 - [x] Use her cursor, on by default: she searches YouTube and picks a video, plays from Spotify's search and drags its volume slider herself
 - [x] Talking to her mid-job: she says "got it", does it and carries on (0.7.6)
-- [x] SECURITY: Lockdown, Guarded, Trusted or Blackwall (was Bypass all permissions), with a toggle for each thing she does on your PC (0.7.6)
+- [x] SECURITY: Lockdown, Guarded, Trusted or Azure, with per-action toggles for ordinary desktop actions; payments, unrequested actions and credentials stay protected (0.7.6)
 - [x] Playing your games with you. She's still learning
 - [x] Reminders on dates, like "remind me on 5 December at 9am" (0.8.3)
 - [x] Teaching her a game's controls before she plays it (0.8.3)
