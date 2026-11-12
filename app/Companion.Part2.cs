@@ -1677,7 +1677,7 @@ namespace CapriDesktop
                 InkWindow inkWindow = inkOverlay.Windows[0];
                 int inkStyle = Native.GetWindowLong(inkWindow.Handle, -20);
                 int inkNeeded = 0x00000020 | 0x00080000 | 0x08000000 | 0x00000080 | 0x00000008;
-                if ((inkStyle & inkNeeded) != inkNeeded || (inkStyle & 0x00040000) != 0 || Native.GetForegroundWindow() != inkFront || !inkMonitor.Contains(inkWindow.Bounds) || inkWindow.Bounds.Width >= inkMonitor.Width / 2) throw new Exception("Ink took focus, lost click-through or covered more than its drawing.");
+                if ((inkStyle & inkNeeded) != inkNeeded || (inkStyle & 0x00040000) != 0 || Native.GetForegroundWindow() != inkFront || !inkMonitor.Contains(inkWindow.Bounds) || inkWindow.Bounds.Width >= inkMonitor.Width / 2) throw new Exception("Ink took focus, lost click-through or covered more than its drawing (style=0x" + inkStyle.ToString("X8") + ", required=0x" + inkNeeded.ToString("X8") + ", forbidden=0x00040000, foreground=" + Native.GetForegroundWindow() + "/" + inkFront + ", bounds=" + inkWindow.Bounds + ", monitor=" + inkMonitor + ").");
                 inkWindow.Advance(double.MaxValue);
                 if (inkWindow.Animating || !inkOverlay.Has) throw new Exception("Settled ink kept repainting or disappeared.");
                 Computer.Interrupt("Esc smoke stand-in");
@@ -15930,7 +15930,7 @@ namespace CapriDesktop
                                 string makingNote = Hands.Do(shortTool, shortArgs);
                                 string notesNow = Brain.Notes();
                                 if (savedNote != "Saved to my notes: They love Hollow Knight." || savedAgain != "Already in my notes: They love Hollow Knight." || !makingHeard || makingNote != "Saved to my notes: They're making a Roblox game." || notesNow != "- They love Hollow Knight\n- They're making a Roblox game") throw new Exception("Saving notes went wrong: " + savedNote + " / " + savedAgain + " / " + makingNote + " / " + notesNow);
-                                if (!File.ReadAllText(notesFile).StartsWith("# What Capri remembers about you", StringComparison.Ordinal) || Brain.Remembered().IndexOf("- They love Hollow Knight", StringComparison.Ordinal) < 0 || Agent.Prompt.IndexOf("Hollow Knight", StringComparison.Ordinal) >= 0) throw new Exception("Her notes did not reach her prompt the right way.");
+                                if (!File.ReadAllText(notesFile).StartsWith("# What Azure remembers", StringComparison.Ordinal) || Brain.Remembered().IndexOf("- They love Hollow Knight", StringComparison.Ordinal) < 0 || Agent.Prompt.IndexOf("Hollow Knight", StringComparison.Ordinal) >= 0) throw new Exception("Her notes did not reach her prompt the right way.");
                                 foreach (string secret in new[] { "remember my password is hunter2", "remember I live in Brisbane", "remember my school is Hillcrest", "remember my number is 0412 345 678", "leave a memory that my email address is sam@example.com" })
                                     if (!Hands.Heard(secret, out shortTool, out shortArgs) || shortTool != "remember" || Hands.Do(shortTool, shortArgs) != Brain.Private) throw new Exception("She saved a personal detail: " + secret);
                                 foreach (string chat in new[] { "remember when we played Minecraft?", "remember to drink water", "forget it", "forget about it", "do you remember me?" })
