@@ -22828,7 +22828,7 @@ namespace CapriDesktop
                             box.Leaving = clock.Elapsed.TotalSeconds - 1;
                             RenderFrame();
                             if (box.Visible || talkState != TalkState.Off) throw new Exception("Dismissing did not close the speech box.");
-                            // Nothing in code screens what they say or rewrites what she says: her brain follows her safety lines, Blackwall on or off.
+                            // Nothing in code screens what they say or rewrites what she says: her brain follows its safety lines under every SECURITY preset.
                             Func<string, string> filterThinkWas = Think;
                             Action<string> filterRunWas = Hands.Run;
                             bool filterComputerWas = Computer.Bypass, filterQuickWas = preferences.QuickHands;
@@ -22864,7 +22864,7 @@ namespace CapriDesktop
                             }
                             if (afterSong != "Sex on Fire is up, choom!" || afterSwear != "Hell yeah, this one slaps like shit." || afterHeavy != "Hey. I'm right here. Talk to me?" || filterHeard.Count != 3 || filterRan.Count != 1 || maskedReply != "Typed " + Computer.Dots + " into the password box.")
                                 throw new Exception("Code screened what they said or rewrote her reply, or a password showed: " + afterSong + " / " + afterSwear + " / " + afterHeavy + " / heard " + filterHeard.Count + " / ran " + filterRan.Count + " / " + maskedReply);
-                            checks.Add("PASS no code filters: with Blackwall off too, everything they say reaches her brain and her reply comes out as her brain wrote it, since her safety lines are part of her prompt; a typed password still shows as dots in her bubble");
+                            checks.Add("PASS no code filters: the selected SECURITY preset doesn't screen what they say or rewrite her reply; her safety lines remain in the prompt, and a typed password still shows as dots in her bubble");
                             Think = null;
                             brain.Model = null;
                             System.Collections.Generic.List<byte> brainlessKeys = new System.Collections.Generic.List<byte>();
@@ -23435,7 +23435,7 @@ namespace CapriDesktop
                                 if (hidden) ShowHidden(false);
                                 if (new Preferences().HeyCapri) throw new Exception("Listen for \"Hey Capri\" wasn't off out of the box.");
                                 if (HeyCapriOn) SetHeyCapri(false);
-                                // Outside these checks, as when SECURITY's Blackwall preset turns it on, the smoke test's listener does nothing.
+                                // Outside these checks, as when SECURITY's Azure preset turns it on, the smoke test's listener does nothing.
                                 string speechBefore = speech, noteBefore = mainframe.VoiceNoteText;
                                 SetHeyCapri(true);
                                 CheckWake(clock.Elapsed.TotalSeconds);
@@ -23551,7 +23551,7 @@ namespace CapriDesktop
                                 CloseTalk();
                             }
                             if (wakeFlow != null) throw new Exception("Hey Capri went wrong: " + wakeFlow);
-                            checks.Add("PASS Hey Capri: off out of the box, and while off it opens no mic and downloads nothing; in the smoke test, turning it on outside these checks (SECURITY's Blackwall preset does) wakes nothing; the first turn-on says plainly that it's getting her free voice, then the pack; on, it listens on its own mic and says so, keeps the mic open but decodes nothing while she talks, and closes the mic in voice chat, on her mute, with Windows' mute and in Quiet, opening it again after; a Bluetooth headset's mic stays shut, so the headset isn't left on a call, and she says why once; \"Hey Capri\" glitches her in when she's hidden, opens voice chat the way her talk key does and she says a short line; turned off, the mic closes");
+                            checks.Add("PASS Hey Capri: off out of the box, and while off it opens no mic and downloads nothing; in the smoke test, turning it on outside these checks (SECURITY's Azure preset does) wakes nothing; the first turn-on says plainly that it's getting her free voice, then the pack; on, it listens on its own mic and says so, keeps the mic open but decodes nothing while she talks, and closes the mic in voice chat, on her mute, with Windows' mute and in Quiet, opening it again after; a Bluetooth headset's mic stays shut, so the headset isn't left on a call, and she says why once; \"Hey Capri\" glitches her in when she's hidden, opens voice chat the way her talk key does and she says a short line; turned off, the mic closes");
                             if (WakeWord.PackUrl != "https://github.com/lachydotmcg/capri-desktop/releases/download/ears-pack-1/sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01.tar.bz2" || WakeWord.PackSize != 17626723 || WakeWord.PackSha != "f170013b4716e41b62b9bfd809687c207cef798ef9bc6534d524e17af9b6561a")
                                 throw new Exception("Her wake word points at the wrong download: " + WakeWord.PackUrl + " / " + WakeWord.PackSize + " / " + WakeWord.PackSha);
                             string wakeRoot = Path.Combine(Path.GetDirectoryName(settingsPath), "wake-test");
