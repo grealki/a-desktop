@@ -1,6 +1,6 @@
 # Azure Development Status
 
-Last updated: 2026-11-11
+Last updated: 2026-11-13
 
 ## Repository and working rules
 
@@ -14,65 +14,43 @@ Last updated: 2026-11-11
   2. Replace Capri-owned AI endpoints/access-code integration with Azure configuration while preserving legitimate user-selected providers and local AI.
   3. Remove automatic Windows security-warning override / “Run anyway” behavior.
 
-## Current build investigation
+## Windows source and compile status
 
-- Windows CI compiles `app/Capri.cs` directly through `ci/build-windows.ps1`; this is the canonical Windows source, not generated output.
-- Linux and macOS CI build `cross/Capri.Cross.csproj` separately.
-- Baseline CI on 2026-11-11 at commit `a49a0a401d9b26202197285e629ea0007fbd750d`:
-  - Windows failed with `CS1513: } expected` at `app/Capri.cs(47787,10)`.
-  - Linux and macOS build/smoke jobs passed.
-  - Windows package-marker failure was secondary because the build did not produce the installer.
-- The later diagnostic run exposed the underlying Windows source issues:
-  - A purchase-confirmation smoke-test `try` block lacked its closing brace before `finally` near line 39327.
-  - Two stale `Cloud.Code` references remained in `app/Capri.cs` even though `Cloud.Code` had been removed with legacy access-code support (previously near lines 10506 and 13867).
-  - An intermediate repair added a brace in the wrong location before the `StartSmokeTest` catch; that incorrect brace has been removed.
-- Corrective source changes are committed to `azure-dev` in commit `677f73d482ed3d24145d6d2a5b72cc13076a95be`:
-  - Closed the purchase-confirmation test block before its `finally`.
-  - Removed the misplaced brace from `StartSmokeTest`.
-  - Removed the two obsolete `remote.Code` branches; they only supported the removed legacy access-code system.
-- Static verification after that commit: braces are balanced and no `brain.Remote.Code` / `remote.Code` references remain.
-- **A fresh CI run against the corrected source is still required.** The most recent completed Windows run tested the intermediate source and failed; do not describe the corrected build as passing until the new Windows build and smoke test complete.
+- `app/Capri.cs` is canonical Windows source, not generated output. `ci/build-windows.ps1` lists it directly alongside `app/Companion.Part2.cs` and the other source files passed to `csc.exe`.
+- The earlier Windows `CS1513: } expected` failure and the two stale `remote.Code` references were fixed in commit `677f73d482ed3d24145d6d2a5b72cc13076a95be`. That commit also closed the purchase-confirmation smoke-test block before its `finally` and removed the misplaced brace near the `StartSmokeTest` catch.
+- Current `azure-dev` source has no `Cloud.Code`, `remote.Code`, `CodeKind` or active legacy access-code references in `app/Capri.cs`.
+- The safe `Security` API lives in `app/Hands.cs`. Current callers in `app/Capri.cs` use its preset, load, toggle and gate APIs. Payments, unrequested actions and credential entry remain fixed restrictions.
+- `Computer.Bypass` is compatibility-only: its getter always returns false and its setter ignores writes. The saved `Preferences.Bypass` field is migration-only and is cleared when old settings are migrated.
 
-## Latest Windows CI and focused follow-up (2026-11-11)
+## Latest Windows CI and smoke status
 
-- The corrected Windows source compiled successfully in CI, and the separate Windows silent install/uninstall job passed.
-- The Windows runtime smoke test reached 889 PASS, 45 LIMIT, 4 FAIL, and 12 SKIP. The four failures were:
-  - OpenRouter provider routing/settings assertion in `SmokeCloudBrains` (also failed in the earlier run before the recent access-code cleanup).
-  - A stale `SelfKnow` label that still named the old `Things your request didn't mention` setting.
-  - A SECURITY preset/privacy assertion in `SmokePrivacy` that still needs investigation.
-  - SECURITY window layout overflow on the long fixed-confirmation description (also failed in the earlier run, on the payment row).
-- Focused fixes committed on `azure-dev`: shortened the fixed extra-action confirmation description and updated the SelfKnow help topic to match the current fixed safeguard label and behavior.
-- Those two focused fixes have not yet been validated by a completed Windows CI run. Do not call the Windows smoke suite passing until that run completes.
-- The OpenRouter assertion predates the latest changes and is not yet diagnosed. Preserve provider-specific endpoints, keys, and settings; do not change routing without a reproducible root cause.
+- Branch head checked: `35dedd7b110b21614ee08e5511b803f5d05c5ef1` (2026-11-12, “Update cloud smoke expectations for Azure system prompt”).
+- CI run [43250811736, attempt 3](https://github.com/grealki/a-desktop/actions/runs/43250811736) completed successfully on that head:
+  - `windows`: build, Azure memory checks and package-marker test passed.
+  - `windows-setup`: build, silent install and silent uninstall passed.
+  - The compiler emitted existing `CS0649` warnings for fields populated by deserialization; there were no compile errors.
+- Full smoke run [43250811762, attempt 2](https://github.com/grealki/a-desktop/actions/runs/43250811762) is still running the configured 30-minute runtime soak. Do not call the full smoke suite passed until this run completes and its logs are inspected.
+- The preceding full smoke run [43243672132](https://github.com/grealki/a-desktop/actions/runs/43243672132) reached 1020 PASS / 48 LIMIT / 1 FAIL / 12 SKIP. Its only reported failure was a stale assertion expecting “You are Capri” in a cloud request after the active Azure prompt had changed. Commit `35dedd7` updates the two affected cloud-request expectations to “You are Azure”; the new full smoke run is the validation for that correction.
+- This branch's current CI workflow is Windows-only, matching the development focus. Do not spend effort on macOS or Linux unless the user changes that instruction.
 
-## Windows warning and provider audit follow-up (2026-11-11)
+## Approved safety cleanup audit (2026-11-13)
 
-- Targeted Windows-source search found no SmartScreen/“Run anyway” automation, Mark-of-the-Web removal, Zone.Identifier handling, Unblock-File call, or Defender real-time protection override in the inspected app sources.
-- `app/Computer.cs` explicitly instructs the computer agent to stop when Windows or antivirus displays a security warning, not dismiss it or run the file.
-- `app/Capri.cs` uses `WinVerifyTrust` with UI disabled to verify downloaded update signatures; untrusted signatures are rejected. This is verification, not a Windows warning bypass.
-- `app/Setup.cs` has one `runas` elevation path, limited to closing an already-elevated Capri process during install/uninstall; declining the UAC prompt leaves the process running and setup reports that it could not close it. This is not a SmartScreen override and should not be removed as part of the approved scope without a separate reason.
-- The earlier Windows smoke log's privacy failure predates commit `93e3ce3ec0`, which changed preset matching to always count the personal-data safeguard bit. The latest Windows run on `d32a16c0bde6cc8b15a6832462a34d0b79524ca0` is the validation for that fix.
-- OpenRouter smoke-test mismatch identified: production `app/Brain.cs` correctly sends `X-Title: Azure`, while the large `app/Capri.cs` smoke assertion still expects `X-Title: Capri`. Do not revert the production attribution to Capri; update the stale assertion and its PASS description in a controlled source-edit workflow. No production provider routing change is justified by this test failure.
-
-## Verified safety implementation observed so far
-
-- `app/Computer.cs`: legacy `Computer.Bypass` is compatibility-only; getter always returns `false` and setter ignores writes.
-- `app/Capri.cs`: legacy saved bypass values migrate to a safe Azure/Trusted permissions preset and the old flag is cleared.
-- Security smoke tests assert that payments, unrequested actions, and credential entry remain protected, including under the Azure preset.
-- `app/Computer.cs` prompts instruct the agent to stop on Windows/antivirus security warnings, not dismiss them or run the file.
-- `app/Brain.cs`: legacy Capri access-code strings are rejected; legitimate user-selected provider kinds and local brains remain supported.
-- The broader Capri-owned endpoint and actual Windows warning-override audit is not complete. Do not claim either audit is finished.
+- **Blackwall:** no active unrestricted bypass was found in the inspected desktop source. Remaining mentions are migration comments, legacy-settings tests and help text explaining that Blackwall is no longer selectable. Restricted permissions are masked by `Security`; the legacy bypass flag cannot enable them.
+- **AI providers:** `Cloud.KindOf` recognizes supported user-selected providers, while local Ollama/custom local servers and the user-installed Claude Code/Codex plan integrations remain available. No Capri-owned desktop AI endpoint or active access-code provider integration was found. The legacy `CAPRI-...` shape remains only in a negative smoke test and in secret-redaction logic; it is not accepted as a provider.
+- **Worker routes:** `worker/test-legacy-code-routes.mjs` asserts that GET and POST requests to the old `/codes` and `/brain` routes return 404 without Capri-code headers. The old migration file is retained as migration history. The separate `/mods` directory service is intentionally untouched.
+- **Windows warnings:** the inspected desktop C# sources contain no SmartScreen dismissal, “Run anyway” automation, Mark-of-the-Web / `Zone.Identifier` removal, `Unblock-File`, or Defender real-time-protection override. `app/Computer.cs` tells the computer agent to stop on Windows or antivirus warnings; `README.md`, `SECURITY.md` and the website help docs explicitly say not to choose “Run anyway” or disable SmartScreen.
+- `app/Capri.cs` uses `WinVerifyTrust` to verify update signatures and rejects an unverifiable signature; disabling its verification UI does not bypass the trust result. `app/Setup.cs` has a separate `runas` path only to close the app from its own install folder during setup; declining UAC is reported and does not bypass Windows protection.
+- This was a targeted audit of the desktop app, build scripts, worker legacy-route checks and relevant user-facing documentation. It was not a blanket review or removal of unrelated website, Discord-bot or mod-directory services.
 
 ## Temporary patch mechanism
 
-- The one-off workflow `.github/workflows/temporary-azure-source-patch.yml` and script `ci/patch_azure_source.py` have been removed after applying the focused source correction.
+- The one-off workflow `.github/workflows/temporary-azure-source-patch.yml` and script `ci/patch_azure_source.py` were removed after the focused source correction.
 - Do not reintroduce automatic source-rewriting workflows or broad write-permission automation.
 
 ## Next tasks
 
-1. Validate the corrected Windows source with a fresh CI run on the latest `azure-dev` head.
-2. Inspect Windows build and smoke-test logs; fix only verified regressions.
-3. Audit Capri-owned endpoint/access-code references and preserve legitimate user-selected providers and local AI.
-4. Audit actual Windows security-warning handling paths, not just prompts; remove any automatic override if present.
+1. Check full smoke run `43250811762` after its runtime soak completes; inspect all diagnostics and fix only reproducible regressions.
+2. Keep legitimate user-selected cloud providers and local AI intact. Do not change provider routing without a reproducible root cause.
+3. Keep mod-directory endpoints and unrelated services intact unless the user separately approves a change.
+4. Keep development, testing and commits on Windows and `azure-dev` only.
 5. Keep Gaming Co-Pilot Mode as a separate future Azure feature: cooperative advice plus user-approved control handoff. It is planned, not implemented.
-6. Update this file after each meaningful code change and CI result so a new chat can resume accurately.
