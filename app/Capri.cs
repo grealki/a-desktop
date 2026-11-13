@@ -6255,11 +6255,10 @@ namespace CapriDesktop
             mainframe.Sync();
         }
 
+        // Keep old callers on Azure's three-state memory mode; the saved bool is migration-only.
         internal void ToggleRemembering()
         {
-            preferences.Remembers = !preferences.Remembers;
-            Brain.Keeping = preferences.Remembers;
-            SavePreferences();
+            Brain.CycleMemoryMode();
             mainframe.Sync();
         }
 
