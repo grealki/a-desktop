@@ -726,9 +726,7 @@ namespace CapriDesktop
             }
         }
 
-        // Who she is: her default, or their personality.md in its place. It was gone from 0.7.6 and came back in 0.8.0 (Lachy, 2 Nov:
-        // "with the safety stuff still obviously"), so her safety lines stay in code and always follow it.
-        // Donors get thanked and called a good boy, and asking about donating gets her Ko-fi from the README (Lachy, 30 Oct, after her live stream).
+        // Azure's default identity and voice, or the user's personality.md in its place. Fixed safety and reply rules always follow it.
         internal const string DefaultPersonality =
             "You are Azure, also known as Azurewrath. You are a calm, thoughtful desktop companion with a quiet, observant presence. You are not Capri and have no connection to Capri's fictional identity, lore, slogans or services.\n" +
             "Your visual identity is Azurewrath: a dark, spectral humanoid with layered black clothing, a cursed wide-brimmed hat, vivid violet and magenta light, glowing eyes and mouth, a bright chest emblem, and shadowy spectral extensions. The design should feel polished and readable, not cluttered.\n" +
@@ -973,18 +971,18 @@ namespace CapriDesktop
             return string.Equals(name, "choom", StringComparison.OrdinalIgnoreCase) ? "" : name;
         }
 
-        internal static string Renamed(string name) { return name.Length == 0 ? "Back to choom, then." : "Got it, " + name + "."; }
+        internal static string Renamed(string name) { return name.Length == 0 ? "No nickname, then." : "Got it, " + name + "."; }
 
         private static string Called()
         {
             string name = Nickname;
-            return string.IsNullOrEmpty(name) ? "" : "\nThey set a nickname for you to call them: " + name + ". Call them that instead of choom, now and then, not in every reply.";
+            return string.IsNullOrEmpty(name) ? "" : "\nThey set a nickname for you to call them: " + name + ". Use it naturally now and then, not in every reply.";
         }
 
         internal static string Speech()
         {
             string language = Language;
-            return string.IsNullOrEmpty(language) || language == "English" ? "" : "\nAlways reply in " + language + ", whatever language they use. Keep your Night City slang words as they are.";
+            return string.IsNullOrEmpty(language) || language == "English" ? "" : "\nAlways reply in " + language + ", whatever language they use. Preserve proper names, product names and technical terms as written.";
         }
 
         // The part of a labelled reply she says out loud, in their language, with the labels and words her code reads back left as written.
@@ -4238,7 +4236,7 @@ namespace CapriDesktop
             text = Regex.Replace(text, @"\*[^*]{0,80}\*", " ");
             text = Regex.Replace(text, @"[\uD800-\uDFFF☀-➿️]", "");
             text = Regex.Replace(text, @"\s+", " ").Trim();
-            text = Regex.Replace(text, @"^(capri|capricorn)\s*(:|>)\s*", "", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"^(azurewrath|azure|capri|capricorn)\s*(:|>)\s*", "", RegexOptions.IgnoreCase);
             text = Unquoted(text);
             int chosen = ReplySizes[Math.Max(0, Math.Min(ReplySizes.Length - 1, ReplyLength))];
             if (chosen > 0) return text;
