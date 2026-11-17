@@ -5083,7 +5083,8 @@ namespace CapriDesktop
                 if (Computer.StreamNote.IndexOf("Each minute of the stream is 40 seconds focused on the game, then 20 seconds for chat.", StringComparison.Ordinal) < 0 || Computer.StreamNote.IndexOf("the say tool is unavailable then", StringComparison.Ordinal) < 0 || !Hands.Streams("Hey Capri, play Minecraft with streamer mode and talk to chat") || Hands.Streams("what's the time") || !Hands.ChatPanel().IsEmpty && Hands.ChatPanel().Width < 200) throw new Exception("Her stream note or chat panel was wrong.");
                 if (!Hands.StreamAsked("Hey Capri, play Minecraft with streamer mode and talk to chat") || !Hands.StreamAsked("Capri, use streaming mode and play minecraft while talking to chat") || !Hands.StreamAsked("play minecraft on my stream") || !Hands.StreamAsked("Enter Gaming Mode and use Computer Use to play Bloons TD 6. I'm also live streaming so occasionally talk to chat for me") || !Hands.StreamAsked("play terraria, I'm live") || !Hands.StreamAsked("don't stop playing and talk to chat") || !Hands.StreamAsked("can you read my tiktok chat") || Hands.StreamAsked("I'm streaming tonight") || Hands.StreamAsked("don't talk to chat") || Hands.StreamAsked("stop talking to chat") || Hands.StreamAsked("is streaming mode on") || Hands.StreamAsked("play minecraft") || Hands.StreamAsked("how does streamer mode work") || Hands.StreamAsked("turn off streaming mode")) throw new Exception("A stream asked for in words was read wrong.");
                 Computer.Streaming = true;
-                bool quietDropped = Computer.PlayingNow.IndexOf("keep playing quietly", StringComparison.Ordinal) < 0;
+                bool chatGuidanceDropped = Computer.PlayingNow.IndexOf("If a chat is on screen, like the game's or a stream's", StringComparison.Ordinal) < 0
+                    && Computer.PlayingNow.IndexOf("do not interrupt gameplay to fill silence", StringComparison.Ordinal) < 0;
                 System.Collections.Generic.List<string> streamTalk = new System.Collections.Generic.List<string>();
                 Job streamJob = new Job("play Terraria") { Says = streamTalk.Add };
                 string streamShut = streamJob.Spoken("Not my chat time yet.", 5);
@@ -5097,7 +5098,10 @@ namespace CapriDesktop
                 bool streamBeats = !streamBeat.Due(39) && !streamBeat.Open(39) && streamBeat.Due(41) && streamBeat.Open(50) && !streamBeat.Due(50) && !streamBeat.Open(62) && !streamBeat.Due(100) && streamBeat.Due(130) && streamBeat.Open(140) && !streamBeat.Due(189) && streamBeat.Due(190);
                 Computer.Streaming = false;
                 if (!streamHeard || !streamTold || !streamChat || !streamBeats || streamJob.Prompted(Computer.Sees).IndexOf(Computer.StreamNote, StringComparison.Ordinal) >= 0 || streamJob.ChatWords(500).Length != 0) throw new Exception("Her stream didn't reach every brain the same way.");
-                if (!quietDropped || Computer.PlayingNow.IndexOf("keep playing quietly", StringComparison.Ordinal) < 0) throw new Exception("Her stream kept the game prompt's keep playing quietly, or a normal game lost it.");
+                bool normalChatGuidanceRestored = Computer.PlayingNow.IndexOf("If a chat is on screen, like the game's or a stream's", StringComparison.Ordinal) >= 0
+                    && Computer.PlayingNow.IndexOf("do not interrupt gameplay to fill silence", StringComparison.Ordinal) >= 0;
+                if (!chatGuidanceDropped || !normalChatGuidanceRestored)
+                    throw new Exception("Streaming should use its dedicated chat timing rules, while normal game jobs keep the general chat guidance.");
                 preferences.NoGaming = false;
                 ToggleGaming();
                 bool keyOff = !GamingOn && !GamingWanted;
@@ -19652,8 +19656,11 @@ namespace CapriDesktop
                             bool personaEditable = mainframe.PersonalityShown != "Her personality";
                             bool personaFixed = Brain.Persona == Brain.DefaultPersonality + "\n" + Brain.Safety + "\n" + Brain.Machinery && Brain.Persona.Length == 4866 && personaHash(Brain.Persona) == todaysPersona && Brain.PersonalityStamp == ""
                                 && Brain.Character.StartsWith(Brain.Persona, StringComparison.Ordinal) && Agent.Prompt.StartsWith(Brain.Persona + Hands.Note, StringComparison.Ordinal)
-                                && Brain.Machinery.IndexOf("call people only by names you've actually seen or heard", StringComparison.Ordinal) > 0 && Brain.Machinery.IndexOf("never apologise for the same thing twice", StringComparison.Ordinal) > 0
+                                && Brain.Machinery.IndexOf("Never invent names, messages, screen contents, tool results or completed actions.", StringComparison.Ordinal) > 0
+                                && Brain.Machinery.IndexOf("Correct mistakes plainly.", StringComparison.Ordinal) > 0
+                                && Computer.Playing.IndexOf("Use names exactly as the chat shows them", StringComparison.Ordinal) > 0
                                 && Computer.Playing.IndexOf("never invent a name, a message or something nobody said", StringComparison.Ordinal) > 0
+                                && Computer.Playing.IndexOf("never apologise for the same thing twice", StringComparison.Ordinal) > 0
                                 && Brain.DefaultPersonality.IndexOf("You are Azure, also known as Azurewrath.", StringComparison.Ordinal) == 0 && Brain.DefaultPersonality.IndexOf("You are not Capri", StringComparison.Ordinal) > 0
                                 && Brain.DefaultPersonality.IndexOf("When someone donates or tips", StringComparison.Ordinal) < 0 && Brain.DefaultPersonality.IndexOf("ko-fi.com/lachysdev", StringComparison.Ordinal) < 0
                                 && Brain.Character.IndexOf("Night City", StringComparison.OrdinalIgnoreCase) < 0 && Brain.Character.IndexOf("choom", StringComparison.OrdinalIgnoreCase) < 0
