@@ -19664,7 +19664,7 @@ namespace CapriDesktop
                                 && Brain.DefaultPersonality.IndexOf("You are Azure, also known as Azurewrath.", StringComparison.Ordinal) == 0 && Brain.DefaultPersonality.IndexOf("You are not Capri", StringComparison.Ordinal) > 0
                                 && Brain.DefaultPersonality.IndexOf("When someone donates or tips", StringComparison.Ordinal) < 0 && Brain.DefaultPersonality.IndexOf("ko-fi.com/lachysdev", StringComparison.Ordinal) < 0
                                 && Brain.Character.IndexOf("Night City", StringComparison.OrdinalIgnoreCase) < 0 && Brain.Character.IndexOf("choom", StringComparison.OrdinalIgnoreCase) < 0
-                                && Hands.Note.IndexOf("You are the hands of Azure", StringComparison.Ordinal) >= 0 && Hands.Note.IndexOf("capriai.app", StringComparison.OrdinalIgnoreCase) < 0
+                                && Hands.Prompt.IndexOf("You are the hands of Azure", StringComparison.Ordinal) >= 0 && Hands.Note.IndexOf("capriai.app", StringComparison.OrdinalIgnoreCase) < 0
                                 && Computer.Prompt.IndexOf("You are the hands of Azure", StringComparison.Ordinal) >= 0 && Computer.Seeing.IndexOf("You are the hands of Azure", StringComparison.Ordinal) >= 0
                                 && Computer.Prompt.IndexOf("Capri", StringComparison.Ordinal) < 0 && Computer.Seeing.IndexOf("Capri", StringComparison.Ordinal) < 0
                                 && Computer.Playing.IndexOf("Azure's calm voice", StringComparison.Ordinal) >= 0 && Computer.Playing.IndexOf("Capri", StringComparison.Ordinal) < 0
