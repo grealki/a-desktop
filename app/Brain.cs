@@ -784,10 +784,10 @@ namespace CapriDesktop
         internal const string ResetKept = "Back to my default self. Yours is saved as personality.backup.md.";
         internal const string ResetDone = "Back to my default self.";
         // Azure's default stamp. Change her default and the smoke test fails until this is the new stamp and the old one is in Retired.
-        internal const string DefaultStamp = "52c4ca26910c2c4b";
+        internal const string DefaultStamp = "f0ceeea36983a58b";
         // Stamps of older defaults: 63e0148935e35287 is 0.7.4, 2b50818492a85006 is 0.7.5, and
-        // 5d97387c124dad49 is the pre-Azure default. Untouched copies are replaced with Azure's default.
-        internal static readonly List<string> Retired = new List<string> { "63e0148935e35287", "2b50818492a85006", "5d97387c124dad49" };
+        // 5d97387c124dad49 is the pre-Azure default; 52c4ca26910c2c4b is the previous Azure default. Untouched copies are replaced with Azure's default.
+        internal static readonly List<string> Retired = new List<string> { "63e0148935e35287", "2b50818492a85006", "5d97387c124dad49", "52c4ca26910c2c4b" };
 
         internal static string PersonalityBackup { get { string path = PersonalityPath; return path == null ? null : Path.Combine(Path.GetDirectoryName(path), "personality.backup.md"); } }
 
