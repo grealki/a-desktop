@@ -822,7 +822,7 @@ namespace CapriDesktop
                         string plain = Readable(File.ReadAllText(path));
                         int skipped;
                         string kept = Kept(plain, out skipped);
-                        bool hers = kept.Length == 0 || plain == DefaultPersonality || Retired.Contains(Stamp(plain));
+                        bool hers = kept.Length == 0 || plain == Readable(DefaultPersonality) || Retired.Contains(Stamp(plain));
                         personalityText = hers ? DefaultPersonality : kept;
                         personalityNote = hers ? "" : skipped > 0 ? skipped + (skipped == 1 ? " line" : " lines") + " skipped: they went against her safety lines" : kept.Length > LongPersonality ? LongNote : "";
                         personalitySeen = seen;
