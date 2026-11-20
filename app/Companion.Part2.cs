@@ -20250,10 +20250,10 @@ namespace CapriDesktop
                             CloseTalk();
                             bool trimmedName = Brain.Nick("  Ana-Mar\u00eda   O'Neil ") == "Ana-Mar\u00eda O'Neil" && Brain.Nick("<b>V</b>") == "bVb" && Brain.Nick(new string('z', 40)).Length == 24 && Brain.Nick("CHOOM") == "" && Brain.Nick("!!!") == "";
                             mainframe.TypeNickname("choom");
-                            bool clearedName = Nickname == "" && preferences.Nickname == null && mainframe.NicknameShown == "" && reply == "Back to choom, then." && Brain.Character.IndexOf("set a nickname", StringComparison.Ordinal) < 0;
+                            bool clearedName = Nickname == "" && preferences.Nickname == null && mainframe.NicknameShown == "" && reply == "No nickname, then." && Brain.Character.IndexOf("set a nickname", StringComparison.Ordinal) < 0;
                             CloseTalk();
                             if (!namedRight || !rudeName || !trimmedName || !clearedName) throw new Exception("The nickname box went wrong: named " + namedRight + ", rude " + rudeName + ", trimmed " + trimmedName + ", cleared " + clearedName);
-                            checks.Add("PASS nickname: What should she call you? saves a cleaned-up name, rude ones too since it's their call, she says got it, her brain is told to use it now and then, and choom or an empty box goes back to choom");
+                            checks.Add("PASS nickname: What should she call you? saves a cleaned-up name, rude ones too since it's their call, she says got it, her brain is told to use it now and then, and the clear word or an empty box clears the nickname");
                             // A please on the end of a message job stays out of the message, however it's spelt.
                             if (Hands.Unpleased("text hi to my alt on discord plsease") != "text hi to my alt on discord" || Hands.Unpleased("text my alt hi, pls!") != "text my alt hi" || Hands.Unpleased("dm him gg please capri") != "dm him gg"
                                 || Hands.Unpleased("text him meet me at the plaza") != "text him meet me at the plaza" || Hands.Unpleased("open spotify please") != "open spotify please" || Hands.Unpleased(null) != null)
