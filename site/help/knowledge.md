@@ -113,7 +113,7 @@ That's her Discord status. While Discord is open on the same PC, your profile sh
 
 ### "Item Not Found" or the installer disappeared
 Your browser or antivirus held the file back.
-1. In Chrome or Edge, press Ctrl + J and pick Keep on Capri-Setup.exe.
+1. If Chrome or Edge blocks the download, leave it blocked. Do not choose Keep to bypass a warning; verify the publisher and source independently, and ask a trusted adult or administrator to review any security notice.
 2. If your antivirus removed it, leave it quarantined until the file and publisher have been independently verified.
 3. Open it from your Downloads folder, not from the browser's download bar.
 
@@ -153,7 +153,7 @@ The install stopped partway. Nothing you saved was lost. Close Capri if it's ope
 Windows, often an antivirus, stopped the installer saving her Start menu shortcut. Capri.exe is already installed.
 1. Press Win + R, type %LOCALAPPDATA%\Capri and press Enter.
 2. Right-click Capri.exe and pick Pin to Start. Double-click it to open her.
-3. For the shortcut itself, allow Capri-Setup.exe in your antivirus and run it again.
+3. Do not add an antivirus exception to create a shortcut. Keep protection enabled and ask a trusted adult or administrator to review any security alert.
 
 Newer installers finish the install without the shortcut, say why, and show you Capri.exe.
 
@@ -1916,7 +1916,7 @@ Then check the exact message, your Capri version (top of the Mainframe), and the
 - "Quit Capri from her tray menu, then install again.": quit Capri first.
 - Windows 7, 8 or 32-bit Windows: not supported. Capri needs Windows 10 or 11, 64-bit.
 - Capri vanished after installing, or the shortcut doesn't work: check your antivirus notification and leave any flagged file quarantined. Do not restore it or create an exception unless its safety has been independently verified.
-- An "authorization" or permission error while installing: Capri doesn't need admin rights. Run Capri-Setup.exe from your Downloads folder and check your antivirus didn't block it. Still failing? Post a screenshot of the exact message in the Discord.
+- An "authorization" or permission error while installing: Capri doesn't need admin rights. Run Capri-Setup.exe from your Downloads folder only if your browser and security software have not flagged it. If either blocks it, leave it blocked and ask a trusted adult or administrator to review the warning. Still failing? Post a screenshot of the exact message in the Discord.
 - The installer "disappeared": work out which happened. The browser download failed, the file vanished after it downloaded, the installer opened and closed, or Capri opened and closed. They have different fixes. One "permissions" problem was really Opera's download failing while Bitdefender quarantined the browser's cache.
 - For a real antivirus detection, note the antivirus, the exact detection name, the file's path and where you downloaded it, and post them in the Discord. Don't turn your antivirus off.
 - "Installing the local speech model" is taking a while: it's about 316 MB. Wait, or press Skip and get it later with Get free voice under VOICE.

@@ -198,8 +198,8 @@ namespace CapriDesktop
 
         internal bool Crashed { get { lock (gate) return server != null && server.HasExited; } }
 
-        // The zip passed its checksum, so a missing server means antivirus took it (owner flag A14). Fits the BRAIN note.
-        internal const string ServerGone = "Your antivirus likely took llama-server.exe. Allow it, then try again.";
+        // The archive checksum is verified, but security software may still quarantine the extracted executable.
+        internal const string ServerGone = "llama-server.exe is missing after extraction. Security software may have quarantined it. Keep it quarantined; do not restore it or add an exception just to continue. Ask a trusted adult or administrator to review the publisher and source.";
 
         internal void Install(Pick pick, Action<string, long, long> progress)
         {
