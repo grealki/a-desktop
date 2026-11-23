@@ -8427,7 +8427,7 @@ namespace CapriDesktop
 
         private void HoldSeat(double now)
         {
-            if (seat.Window == IntPtr.Zero) return;
+            if (seat == null || seat.Window == IntPtr.Zero) return;
             Rectangle bounds;
             if (!Ledges.Showing(seat.Window, out bounds) || !Ledges.Seatable(seat.Window, bounds))
             {

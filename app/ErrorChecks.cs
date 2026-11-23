@@ -794,11 +794,23 @@ namespace CapriDesktop
         // The owner's smaller wording flags: each line keeps its cause and its fix inside the note that shows it.
         private void SmokeSmallWording(List<string> checks)
         {
-            // A14: her brain's and HD voice's server zips pass their checksum first, so a missing .exe means antivirus took it.
-            foreach (string gone in new[] { Engine.ServerGone, QwenVoice.ServerGone })
-                if (gone.Length > 70 || !gone.StartsWith("Your antivirus", StringComparison.Ordinal) || !gone.EndsWith(" Allow it, then try again.", StringComparison.Ordinal))
-                    throw new Exception("A missing server line doesn't name the antivirus and the fix inside its note: " + gone);
-            checks.Add("PASS a missing llama-server.exe or tts-server.exe says your antivirus likely took it and to allow it, whole inside the BRAIN and VOICE notes");
+            // A14: a verified archive can still be quarantined; never tell someone to restore or allow it.
+            string[] gone = { Engine.ServerGone, QwenVoice.ServerGone };
+            string[] servers = { "llama-server.exe", "tts-server.exe" };
+            for (int i = 0; i < gone.Length; i++)
+            {
+                string line = gone[i] ?? "";
+                if (line.IndexOf(servers[i], StringComparison.Ordinal) < 0
+                    || line.IndexOf("Security software may have quarantined it.", StringComparison.Ordinal) < 0
+                    || line.IndexOf("Keep it quarantined", StringComparison.Ordinal) < 0
+                    || line.IndexOf("do not restore it", StringComparison.Ordinal) < 0
+                    || line.IndexOf("add an exception", StringComparison.Ordinal) < 0
+                    || line.IndexOf("Ask a trusted adult or administrator", StringComparison.Ordinal) < 0
+                    || line.IndexOf("Allow it", StringComparison.OrdinalIgnoreCase) >= 0
+                    || line.IndexOf("Run anyway", StringComparison.OrdinalIgnoreCase) >= 0)
+                    throw new Exception("A missing server line doesn't keep a quarantined executable safe: " + line);
+            }
+            checks.Add("PASS missing local server executables stay quarantined and require independent review, without instructions to restore or allow them");
 
             // Jobs flag 5: the three admin lines say how to run her as administrator, the same way.
             foreach (string line in new[] { Computer.AdminWindow, Arrange.Admin("move", "Task Manager"), AdminKeys })
