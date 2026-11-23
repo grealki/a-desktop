@@ -4051,7 +4051,7 @@ namespace CapriDesktop
             System.ComponentModel.Win32Exception windows = error as System.ComponentModel.Win32Exception;
             int code = windows != null ? windows.NativeErrorCode : (error.HResult & unchecked((int)0xFFFF0000)) == unchecked((int)0x80070000) ? error.HResult & 0xFFFF : 0;
             if (code == 225 || code == 226) return "your antivirus blocked it.";
-            if (error is UnauthorizedAccessException || code == 5) return "Windows didn't allow it. If your antivirus blocked it, allow Capri there.";
+            if (error is UnauthorizedAccessException || code == 5) return "Windows didn't allow it. If your antivirus blocked it, leave it blocked and ask a trusted adult or administrator to review the warning.";
             if (code == 112 || code == 39 || NoRoom.IsMatch(error.Message ?? "")) return "your storage is full. Free up space, then try again.";
             if (code == 32 || code == 33) return "another app is using the file. Close it, then try again.";
             if (error is FileNotFoundException || error is DirectoryNotFoundException || code == 2 || code == 3) return "a file or folder it needs isn't there anymore.";

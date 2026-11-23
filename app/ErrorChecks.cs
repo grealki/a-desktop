@@ -751,7 +751,7 @@ namespace CapriDesktop
                     new IOException("The process cannot access the file because it is being used by another process.", unchecked((int)0x80070020)), new FileNotFoundException("Could not find file 'C:\\gone.wav'."),
                     new System.ComponentModel.Win32Exception(225), new System.Net.WebException("The remote name could not be resolved: 'api.elevenlabs.io'"), new InvalidOperationException("Collection was modified; enumeration operation may not execute.")
                 };
-                string[] plain = { "Windows didn't allow it. If your antivirus blocked it, allow Capri there.", "your storage is full. Free up space, then try again.", "another app is using the file. Close it, then try again.", "a file or folder it needs isn't there anymore.", "your antivirus blocked it.", "the connection failed. Check your internet.", "something in Windows failed." };
+                string[] plain = { "Windows didn't allow it. If your antivirus blocked it, leave it blocked and ask a trusted adult or administrator to review the warning.", "your storage is full. Free up space, then try again.", "another app is using the file. Close it, then try again.", "a file or folder it needs isn't there anymore.", "your antivirus blocked it.", "the connection failed. Check your internet.", "something in Windows failed." };
                 for (int i = 0; i < raw.Length; i++)
                 {
                     string said = Brain.Plainly("wording", raw[i]);
