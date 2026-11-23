@@ -25,6 +25,9 @@ jobs:
       - name: Build and Azure memory checks
         shell: pwsh
         run: ./ci/build-windows.ps1 -OutputDirectory out/windows
+      - name: Verify legacy Capri access-code and AI routes stay disabled
+        shell: pwsh
+        run: node worker/test-legacy-code-routes.mjs
       - name: Package marker
         if: always()
         shell: pwsh
