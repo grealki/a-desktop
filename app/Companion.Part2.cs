@@ -12673,6 +12673,9 @@ namespace CapriDesktop
                 Exception agentServerProblem = null;
                 CancellationTokenSource agentStop = new CancellationTokenSource();
                 bool agentStarted = false;
+                // These later steps exercise Full-mode voice and screen memory even on a fresh Off install.
+                // Keeping is a smoke-only override; restore it after the last step without changing the saved mode.
+                bool voiceKeepingWas = false, voiceKeepingSet = false;
                 double agentDeadline = 0;
                 string agentRequest = "starting the listener";
                 Action<string> handsRun = null;
@@ -23955,6 +23958,9 @@ namespace CapriDesktop
                                 preferences.AgentId = "agent_old";
                                 preferences.AgentVersion = 1;
                                 preferences.AgentPersonality = "0123456789abcdef";
+                                voiceKeepingWas = Brain.Keeping;
+                                Brain.Keeping = true;
+                                voiceKeepingSet = true;
                                 Brain.Unsee();
                                 brain.Saw("a pixel art farm with a red barn", "Cute barn.");
                                 File.WriteAllText(Brain.MemoriesPath, Brain.MemoriesHead + "## Earlier\n- They beat Malenia after 40 tries.\n");
@@ -24984,7 +24990,11 @@ namespace CapriDesktop
                             ((ToolStripMenuItem)menu.Items[menu.Items.Count - 1]).PerformClick();
                         }
                         SmokeRun.StepDone(step, true, checks);
-                        if (step == 22) SmokeRun.Complete(checks);
+                        if (step == 22)
+                        {
+                            if (voiceKeepingSet) { Brain.Keeping = voiceKeepingWas; voiceKeepingSet = false; }
+                            SmokeRun.Complete(checks);
+                        }
                         step++;
                     }
                     catch (Exception error)
