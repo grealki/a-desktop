@@ -22932,49 +22932,60 @@ namespace CapriDesktop
                                 while ((talkState == TalkState.Thinking || reply == null) && waited.ElapsedMilliseconds < 5000) { Application.DoEvents(); Thread.Sleep(5); }
                                 return reply;
                             };
-                            string meetNickWas = Brain.Nickname;
-                            string meetPrefWas = preferences.Nickname;
-                            Brain.Unnote("everything");
-                            GetToKnow();
-                            string meetFirst = meetSaid(null);
-                            bool meetTyping = typer.Visible && meeting.Asking && preferences.Met;
-                            string meetNudge = meetSaid("hey");
-                            string meetNamed = meetSaid("call me Lachy!!");
-                            string meetPronouns = meetSaid("she");
-                            string meetInto = meetSaid("I'm into Cyberpunk, Roblox and drawing");
-                            string meetNotes = Brain.Notes();
-                            bool meetNicked = !meeting.Asking && Nickname == "Lachy" && preferences.Nickname == "Lachy" && mainframe.NicknameShown == "Lachy" && Brain.Remembered().IndexOf("match words like girl, boy or choom", StringComparison.Ordinal) >= 0;
-                            GetToKnow();
-                            meetSaid(null);
-                            string meetSkip = meetSaid("skip");
-                            meetSaid("they/them");
-                            string meetStop = meetSaid("stop");
-                            string meetAgain = Brain.Notes();
-                            GetToKnow();
-                            meetSaid(null);
-                            string meetElsewhere = meetSaid("what can you do?");
-                            bool meetLeft = !meeting.Asking && talkState == TalkState.Dormant;
-                            typer.Hide();
-                            CloseTalk();
-                            preferences.Met = false;
-                            meetAt = clock.Elapsed.TotalSeconds - 1;
-                            CheckIdle(0);
-                            bool meetAfterSetup = meeting.Asking && meetAt < 0 && preferences.Met && reply == Meeting.AskName;
-                            string meetStopped = meetSaid("not now");
-                            typer.Hide();
-                            Brain.Unnote("everything");
-                            Brain.Nickname = meetNickWas;
-                            preferences.Nickname = meetPrefWas;
-                            SavePreferences();
-                            mainframe.Sync();
-                            if (meetFirst != Meeting.AskName || !meetTyping || meetNudge != Meeting.AskCalled || meetNamed != "Nice to meet you, Lachy. " + Meeting.AskPronouns || meetPronouns != "Got it. " + Meeting.AskInto
-                                || meetInto != "Love that, Lachy. It's all in my notes now, me.md. " + Meeting.Again || meetNotes != "- Name: Lachy\n- Pronouns: she/her\n- Into: Cyberpunk, Roblox and drawing" || !meetNicked
-                                || meetSkip != Meeting.AskPronouns || meetStop != "No worries. What you told me is in my notes, me.md. " + Meeting.Again || meetAgain != "- Name: Lachy\n- Pronouns: they/them\n- Into: Cyberpunk, Roblox and drawing"
-                                || meetElsewhere != Brain.Offline || !meetLeft || !meetAfterSetup || meetStopped != "No worries, choom. " + Meeting.Again)
-                                throw new Exception("Getting to know them went wrong: " + meetFirst + " / typing " + meetTyping + " / " + meetNudge + " / " + meetNamed + " / " + meetPronouns + " / " + meetInto + " / " + meetNotes.Replace("\n", " | ") + " / nicked " + meetNicked + " / " + meetSkip + " / " + meetStop + " / " + meetAgain.Replace("\n", " | ") + " / " + meetElsewhere + " / left " + meetLeft + " / after setup " + meetAfterSetup + " / " + meetStopped);
-                            foreach (string[] nameCase in new[] { new[] { "Cursed, it's my nickname", "Cursed" }, new[] { "Cursed is my name", "Cursed" }, new[] { "call me Cursed, that's my gamertag", "Cursed" }, new[] { "my nickname is Skittle-Pro", "Skittle-Pro" }, new[] { "Lachy", "Lachy" } })
-                                if (Meeting.NameIn(nameCase[0]) != nameCase[1]) throw new Exception("Her name question kept the wrong name: " + nameCase[0] + " -> " + Meeting.NameIn(nameCase[0]));
-                            checks.Add("PASS getting to know you: after setup, or from Settings > Get to know me, she asks what to call them, their pronouns and what they're into in chat with her typing box open and no brain needed, writes the answers to me.md and calls them by their name, without \"it's my nickname\" on the end; skip, stop and asking again work, and a question or a job ends it and is heard as usual");
+                            Brain.MemoryMode meetMemoryModeWas = Brain.CurrentMemoryMode;
+                            if (!Brain.SetMemoryMode(Brain.MemoryMode.Controlled))
+                                throw new Exception("Couldn't enable Controlled memory for the getting-to-know-you smoke test.");
+                            try
+                            {
+                                string meetNickWas = Brain.Nickname;
+                                string meetPrefWas = preferences.Nickname;
+                                Brain.Unnote("everything");
+                                GetToKnow();
+                                string meetFirst = meetSaid(null);
+                                bool meetTyping = typer.Visible && meeting.Asking && preferences.Met;
+                                string meetNudge = meetSaid("hey");
+                                string meetNamed = meetSaid("call me Lachy!!");
+                                string meetPronouns = meetSaid("she");
+                                string meetInto = meetSaid("I'm into Cyberpunk, Roblox and drawing");
+                                string meetNotes = Brain.Notes();
+                                bool meetNicked = !meeting.Asking && Nickname == "Lachy" && preferences.Nickname == "Lachy" && mainframe.NicknameShown == "Lachy" && Brain.Remembered().IndexOf("match words like girl, boy or choom", StringComparison.Ordinal) >= 0;
+                                GetToKnow();
+                                meetSaid(null);
+                                string meetSkip = meetSaid("skip");
+                                meetSaid("they/them");
+                                string meetStop = meetSaid("stop");
+                                string meetAgain = Brain.Notes();
+                                GetToKnow();
+                                meetSaid(null);
+                                string meetElsewhere = meetSaid("what can you do?");
+                                bool meetLeft = !meeting.Asking && talkState == TalkState.Dormant;
+                                typer.Hide();
+                                CloseTalk();
+                                preferences.Met = false;
+                                meetAt = clock.Elapsed.TotalSeconds - 1;
+                                CheckIdle(0);
+                                bool meetAfterSetup = meeting.Asking && meetAt < 0 && preferences.Met && reply == Meeting.AskName;
+                                string meetStopped = meetSaid("not now");
+                                typer.Hide();
+                                Brain.Unnote("everything");
+                                Brain.Nickname = meetNickWas;
+                                preferences.Nickname = meetPrefWas;
+                                SavePreferences();
+                                mainframe.Sync();
+                                if (meetFirst != Meeting.AskName || !meetTyping || meetNudge != Meeting.AskCalled || meetNamed != "Nice to meet you, Lachy. " + Meeting.AskPronouns || meetPronouns != "Got it. " + Meeting.AskInto
+                                    || meetInto != "Love that, Lachy. It's all in my notes now, me.md. " + Meeting.Again || meetNotes != "- Name: Lachy\n- Pronouns: she/her\n- Into: Cyberpunk, Roblox and drawing" || !meetNicked
+                                    || meetSkip != Meeting.AskPronouns || meetStop != "No worries. What you told me is in my notes, me.md. " + Meeting.Again || meetAgain != "- Name: Lachy\n- Pronouns: they/them\n- Into: Cyberpunk, Roblox and drawing"
+                                    || meetElsewhere != Brain.Offline || !meetLeft || !meetAfterSetup || meetStopped != "No worries, choom. " + Meeting.Again)
+                                    throw new Exception("Getting to know them went wrong: " + meetFirst + " / typing " + meetTyping + " / " + meetNudge + " / " + meetNamed + " / " + meetPronouns + " / " + meetInto + " / " + meetNotes.Replace("\n", " | ") + " / nicked " + meetNicked + " / " + meetSkip + " / " + meetStop + " / " + meetAgain.Replace("\n", " | ") + " / " + meetElsewhere + " / left " + meetLeft + " / after setup " + meetAfterSetup + " / " + meetStopped);
+                                foreach (string[] nameCase in new[] { new[] { "Cursed, it's my nickname", "Cursed" }, new[] { "Cursed is my name", "Cursed" }, new[] { "call me Cursed, that's my gamertag", "Cursed" }, new[] { "my nickname is Skittle-Pro", "Skittle-Pro" }, new[] { "Lachy", "Lachy" } })
+                                    if (Meeting.NameIn(nameCase[0]) != nameCase[1]) throw new Exception("Her name question kept the wrong name: " + nameCase[0] + " -> " + Meeting.NameIn(nameCase[0]));
+                                checks.Add("PASS getting to know you: after setup, or from Settings > Get to know me, she asks what to call them, their pronouns and what they're into in chat with her typing box open and no brain needed, writes the answers to me.md and calls them by their name, without \"it's my nickname\" on the end; skip, stop and asking again work, and a question or a job ends it and is heard as usual");
+                            }
+                            finally
+                            {
+                                if (!Brain.SetMemoryMode(meetMemoryModeWas))
+                                    throw new Exception("Couldn't restore the previous memory mode after the getting-to-know-you smoke test.");
+                            }
                             Hear("hello");
                             if (talkState != TalkState.Dormant || reply != Brain.Offline) throw new Exception("Missing brain did not go DORMANT.");
                             replyStart -= 10;
