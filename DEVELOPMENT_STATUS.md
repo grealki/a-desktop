@@ -18,7 +18,7 @@ Last updated: 2026-11-25
 
 ## Windows source and security API
 
-- Current `azure-dev` head: `3c4fd545985713a02dcc08d493a411a8a1222d95` (2026-11-24).
+- Latest application-source revision validated: `3c4fd545985713a02dcc08d493a411a8a1222d95` (2026-11-24). The later status refresh changes documentation only.
 - `app/Capri.cs` is canonical Windows source, not generated output. `ci/build-windows.ps1` explicitly includes both `app/Capri.cs` and `app/Companion.Part2.cs` in the source list passed directly to `csc.exe`.
 - The safe `Security` API lives in `app/Hands.cs`. `Pays`, `Unasked` and `Secrets` are fixed restrictions: `Locked` returns true for them, `On` returns false, `Set` ignores writes, and `Mask`/`Load` clear those bits. `Gate` holds actions and asks when an ordinary-action toggle is off.
 - `Computer.Bypass` is compatibility-only: its getter always returns false and its setter ignores writes. The saved `Preferences.Bypass` field exists only to migrate old settings; `Companion.Migrate` clears it. Security smoke checks deliberately attempt legacy writes and verify they cannot relax restrictions.
@@ -35,7 +35,7 @@ Last updated: 2026-11-25
   - The previous smoke failure on the voice/screen-memory step was corrected by the smoke-only Full-memory fixture in the current code commit.
   - `LIMIT` means a live-device or interactive check was not performed in the runner, not a failed assertion. Outstanding examples include real microphone/voice recognition, installed local speech packs, live provider credentials and model availability, physical audio devices, multiple monitors, real games/browsers and physical mouse/tray interaction.
   - The full smoke runner did not perform a real install/uninstall; the separate CI setup job's silent install/uninstall checks passed.
-- The latest branch head and latest CI/smoke runs were rechecked on 2026-11-25. No newer commits or runs were present.
+- The latest application-source CI/smoke runs were rechecked on 2026-11-25; no newer application-source revision or full-smoke run was present. The later status-only documentation refresh does not change application behavior.
 
 ## Approved safety cleanup audit
 
